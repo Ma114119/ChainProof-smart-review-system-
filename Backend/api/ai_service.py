@@ -5,7 +5,10 @@ import os
 
 # --- 1. CONFIGURATION ---
 # Set HF_TOKEN in environment or .env for Llama model access
-HF_TOKEN = os.environ.get("HF_TOKEN", "")
+# Use None (not "") when empty — "Bearer " with no token causes "Illegal header value" error
+HF_TOKEN = os.environ.get("HF_TOKEN") or None
+if HF_TOKEN:
+    HF_TOKEN = str(HF_TOKEN).strip() or None  # Remove whitespace that can break headers
 # This version is only ~2.5GB!
 BASE_MODEL = "meta-llama/Llama-3.2-1B-Instruct" 
 
@@ -37,6 +40,8 @@ try:
 
 except Exception as e:
     print(f"Error: {e}")
+    if "401" in str(e) or "Unauthorized" in str(e) or "gated" in str(e).lower():
+        print("  → Llama is a gated model. Set HF_TOKEN in .env with your Hugging Face token.")
 
 
 PROFANITY_LIST = [
