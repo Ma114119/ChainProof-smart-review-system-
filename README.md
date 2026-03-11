@@ -154,7 +154,7 @@ ChainProof/
 | Name | Role |
 |------|------|
 | **Muhammad Anas** | Developer |
-| **Malaika Mushtaq** | Developer |
+| **Malaika Mushtaq** | Co-Partner |
 | **Dr. Yaser Ali Shah** | Supervisor — COMSATS University Islamabad, Attock Campus |
 
 ---
