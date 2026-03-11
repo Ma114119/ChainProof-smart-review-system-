@@ -25,7 +25,7 @@ function BusinessWallet() {
   const [paymentProofFile, setPaymentProofFile] = useState(null);
   const [paymentProofPreview, setPaymentProofPreview] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [coinRate, setCoinRate] = useState(150);
+  const [coinRate, setCoinRate] = useState(120);
   const [adminWallet, setAdminWallet] = useState('');
   const [adminWalletLoading, setAdminWalletLoading] = useState(true);
   const [adminPaymentDetails, setAdminPaymentDetails] = useState(null);
@@ -54,7 +54,7 @@ function BusinessWallet() {
       const data = await fetchAdminPaymentDetails();
       setAdminWallet(data.admin_wallet_address || '');
       setAdminPaymentDetails(data);
-      setCoinRate(data.pkr_per_rtc || 150);
+      setCoinRate(data.pkr_per_rtc || 120);
     } catch (err) {
       console.error('Failed to load admin payment details:', err);
     } finally {

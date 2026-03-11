@@ -57,7 +57,7 @@ const FinancialDashboard = () => {
     // State Management
     const [coinSupply, setCoinSupply] = useState(1000000);
     const [adminBalance, setAdminBalance] = useState(250000);
-    const [exchangeRate, setExchangeRate] = useState(100);
+    const [exchangeRate, setExchangeRate] = useState(120);
     const [payoutRequests, setPayoutRequests] = useState([]);
     const [purchaseRequests, setPurchaseRequests] = useState([]);
     const [selectedPayoutId, setSelectedPayoutId] = useState(null);
@@ -104,7 +104,7 @@ const FinancialDashboard = () => {
                 if (financials) {
                     setAdminBalance(financials.admin_balance ?? 20000);
                     setCoinSupply(financials.total_coin_supply ?? 20000);
-                    setExchangeRate(financials.exchange_rate ?? 100);
+                    setExchangeRate(financials.exchange_rate ?? 120);
                 }
 
                 // Owner purchase requests (owner buys coins from admin)
@@ -462,8 +462,8 @@ const FinancialDashboard = () => {
                                                     <div><strong>Account #:</strong> {req.accountNumber}</div>
                                                 </div>
                                                 <div style={styles.payoutValueBox}>
-                                                    <span>Amount to Pay (USD)</span>
-                                                    <strong>${(req.coinsToSell / exchangeRate).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong>
+                                                    <span>Amount to Pay (PKR)</span>
+                                                    <strong>{(req.coinsToSell * exchangeRate).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} PKR</strong>
                                                 </div>
                                                 {req.status === 'Pending' && (
                                                     <div style={styles.detailActions}>

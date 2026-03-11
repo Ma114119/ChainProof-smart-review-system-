@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaStar, FaCoins, FaHistory, FaPenAlt, FaSearch, FaArrowRight, FaWallet, FaInfoCircle, FaEnvelope } from 'react-icons/fa';
-import { fetchMyReviews, fetchPublicBusinesses, fetchMyProfile, updateMyProfile, fetchUnreadSupportCount } from '../../services/api';
+import { fetchMyReviews, fetchPublicBusinesses, fetchMyProfile, updateMyProfile, fetchUnreadSupportCount, fetchCustomerBalance } from '../../services/api';
 import WalletAccountPicker from '../../components/WalletAccountPicker';
 import { requestMetaMaskAccounts, shortenAddress } from '../../utils/walletConnection';
 import { MdDashboard, MdNotificationsActive } from 'react-icons/md';
@@ -73,11 +73,12 @@ function CustomerDashboard() {
     });
 
     try {
-      const [myReviews, bizList, profile, unreadRes] = await Promise.all([
+      const [myReviews, bizList, profile, unreadRes, balanceData] = await Promise.all([
         fetchMyReviews(),
         fetchPublicBusinesses(),
         fetchMyProfile(),
         fetchUnreadSupportCount().catch(() => ({ count: 0 })),
+        fetchCustomerBalance().catch(() => ({ balance: 0 })),
       ]);
       setUnreadSupportCount(unreadRes?.count ?? 0);
 
@@ -87,11 +88,12 @@ function CustomerDashboard() {
 
       const walletAddress = profile.wallet_address || '';
       const walletConnectedOnce = profile.wallet_connected_once || false;
+      const coins = balanceData?.balance ?? 0;
 
       setUserData(prev => ({
         ...prev,
         totalReviews: myReviews.length,
-        coins: myReviews.filter(r => r.status === 'Approved').length,
+        coins,
         avgRating,
         walletAddress,
         walletConnectedOnce,

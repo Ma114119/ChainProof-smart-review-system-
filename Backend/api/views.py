@@ -150,7 +150,7 @@ def get_financials(request):
         raise PermissionDenied("Admin access required.")
     admin_balance = float(SystemSettings.get('admin_coin_balance', '20000'))
     total_supply = float(SystemSettings.get('total_coin_supply', '20000'))
-    exchange_rate = int(SystemSettings.get('exchange_rate', '100'))
+    exchange_rate = int(SystemSettings.get('exchange_rate', '120'))
     return Response({
         'admin_balance': admin_balance,
         'total_coin_supply': total_supply,
@@ -220,7 +220,7 @@ def get_admin_payment_details(request):
         'mobile_payment_number': SystemSettings.get('admin_mobile_number', '0300-1234567'),
         'mobile_payment_title': SystemSettings.get('admin_mobile_title', 'Admin Name'),
         'mobile_payment_type': SystemSettings.get('admin_mobile_payment_type', 'EasyPaisa'),  # EasyPaisa or JazzCash
-        'pkr_per_rtc': int(SystemSettings.get('admin_pkr_per_rtc', '150')),
+        'pkr_per_rtc': int(SystemSettings.get('admin_pkr_per_rtc') or SystemSettings.get('exchange_rate', '120') or 120),
     })
 
 
@@ -1040,10 +1040,17 @@ def get_stats(request):
 
     elif user.role == 'owner':
         businesses = Business.objects.filter(owner=user)
+        wallet = (user.wallet_address or '').strip()
+        coins = 0
+        if wallet and len(wallet) >= 10:
+            wallet_lower = wallet.lower()
+            credits = sum(float(wc.amount) for wc in WalletCredit.objects.filter(wallet_address__iexact=wallet_lower))
+            spent = Review.objects.filter(business__in=businesses, is_rewarded=True).count()
+            coins = max(0, credits - spent)
         data = {
             'businessCount': businesses.count(),
             'reviewCount': Review.objects.filter(business__in=businesses).count(),
-            'coins': 0,
+            'coins': coins,
         }
         return Response(data)
 
