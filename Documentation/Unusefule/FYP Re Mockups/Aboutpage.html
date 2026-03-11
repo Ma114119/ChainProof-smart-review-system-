@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - AI-Blockchain Review System</title>
+  <style>
+    /* CSS Variables for Light Theme (Blue-Gray) */
+    :root {
+      --bg-color: #f8fafc;
+      --text-color: #1e293b;
+      --header-bg: #ffffff;
+      --header-text: #1e40af;
+      --primary-accent: #1e40af;
+      --primary-hover: #1e3a8a;
+      --secondary-bg: #e2e8f0;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --footer-bg: #1e293b;
+      --footer-text: #f8fafc;
+      --feature-card-bg: #1e293b;
+      --feature-card-text: #f8fafc;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--header-bg);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+      color: var(--header-text);
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      color: var(--header-text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
+
+    header nav ul li a:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+    }
+
+    /* About Section */
+    .about {
+      padding: 4rem 2rem;
+      text-align: center;
+      background-color: var(--secondary-bg);
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .about h2 {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .about p {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.8;
+    }
+
+    /* Features Section */
+    .features {
+      padding: 4rem 2rem;
+      text-align: center;
+      background-color: var(--card-bg);
+    }
+
+    .features h2 {
+      font-size: 2.5rem;
+      margin-bottom: 2rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .feature-cards {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .card {
+      background-color: var(--feature-card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      width: 250px;
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      color: var(--feature-card-text);
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: var(--primary-accent);
+    }
+
+    .card p {
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      background-color: var(--footer-bg);
+      color: var(--footer-text);
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="logo">AI-Blockchain Review</div>
+    <nav>
+      <ul>
+        <li><a href="Homepage.html">Home</a></li>
+        <li><a href="about.html">About</a></li>
+        <li><a href="ContactUspage.html">Contact-Us</a></li>
+        <li><a href="Loginpage.html">Login</a></li>
+        <li><a href="Signuppage.html">Sign Up</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <section class="about">
+    <h2>About the System</h2>
+    <p>
+      Our AI-driven Blockchain Integration Review System combines the power of Artificial Intelligence and Blockchain technology to provide a secure, transparent, and tamper-proof platform for reviews. Whether you're a customer, business owner, or admin, our system ensures trust and efficiency in every interaction.
+    </p>
+  </section>
+
+  <section class="features">
+    <h2>Key Features</h2>
+    <div class="feature-cards">
+      <div class="card">
+        <h3>AI-Powered Analysis</h3>
+        <p>Utilizes AI to analyze and validate reviews for accuracy and authenticity.</p>
+      </div>
+      <div class="card">
+        <h3>Blockchain Security</h3>
+        <p>Ensures transparency and immutability of reviews using blockchain technology.</p>
+      </div>
+      <div class="card">
+        <h3>User-Friendly Interface</h3>
+        <p>Easy-to-use platform designed for all users, regardless of technical expertise.</p>
+      </div>
+      <div class="card">
+        <h3>Role-Based Access</h3>
+        <p>Customized dashboards for customers, business owners, and admins.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 AI-Blockchain Review System. All rights reserved.</p>
+  </footer>
+</body>
+</html>

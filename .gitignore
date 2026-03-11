@@ -1,0 +1,64 @@
+# Python
+venv/
+env/
+.env
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.eggs/
+*.egg-info/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+*.log
+
+# Django
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# AI Weights (large files - download separately for deployment)
+Backend/ai_weights/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp
+.pnp.js
+
+# React / Frontend
+Frontend/review-system/build/
+Frontend/review-system/.env.local
+Frontend/review-system/.env.development.local
+Frontend/review-system/.env.test.local
+Frontend/review-system/.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.local
+
+# Misc
+*.bak
+*.tmp
+.cache/

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - AI-Blockchain Review System</title>
+  <style>
+    /* CSS Variables for Light Theme (Blue-Gray) */
+    :root {
+      --bg-color: #f8fafc;
+      --text-color: #1e293b;
+      --header-bg: #ffffff;
+      --header-text: #1e40af;
+      --primary-accent: #1e40af;
+      --primary-hover: #1e3a8a;
+      --secondary-bg: #e2e8f0;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --footer-bg: #1e293b;
+      --footer-text: #f8fafc;
+      --table-header-bg: #f1f5f9;
+      --table-border: #e2e8f0;
+      --table-row-alt: #f8fafc;
+      --button-danger: #dc2626;
+      --button-danger-hover: #b91c1c;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--header-bg);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+      color: var(--header-text);
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      color: var(--header-text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
+
+    header nav ul li a:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+    }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      min-height: calc(100vh - 120px);
+    }
+
+    /* Dashboard Section */
+    .dashboard {
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 1200px;
+      border: 1px solid var(--card-border);
+    }
+
+    .dashboard h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Metrics */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .metric {
+      background-color: var(--secondary-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .metric h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary-accent);
+    }
+
+    .metric p {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Tables for Management */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+      border: 1px solid var(--table-border);
+    }
+
+    table th {
+      background-color: var(--table-header-bg);
+      color: var(--primary-accent);
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--table-border);
+    }
+
+    table tr:nth-child(even) {
+      background-color: var(--table-row-alt);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--button-danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: var(--button-danger-hover);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      background-color: var(--footer-bg);
+      color: var(--footer-text);
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      table {
+        display: block;
+        overflow-x: auto;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">AI-Blockchain Review</div>
+    <nav>
+      <ul>
+        <li><a href="Homepage.html">Home</a></li>
+        <li><a href="Aboutpage.html">About</a></li>
+        <li><a href="ContactUspage.html">Contact-Us</a></li>
+        <li><a href="Loginpage.html">Logout</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Dashboard Section -->
+    <div class="dashboard">
+      <h2>Admin Dashboard</h2>
+
+      <!-- Metrics -->
+      <div class="metrics">
+        <div class="metric">
+          <h3>Total Users</h3>
+          <p>1,234</p>
+        </div>
+        <div class="metric">
+          <h3>Total Businesses</h3>
+          <p>567</p>
+        </div>
+        <div class="metric">
+          <h3>Total Reviews</h3>
+          <p>8,910</p>
+        </div>
+        <div class="metric">
+          <h3>Total Coins</h3>
+          <p>12,345</p>
+        </div>
+      </div>
+
+      <!-- User Management -->
+      <h3>User Management</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Muhammad Anas</td>
+            <td>anas@example.com</td>
+            <td>Customer</td>
+            <td>
+              <button class="btn btn-primary">Edit</button>
+              <button class="btn btn-danger">Suspend</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Kaniz Memona</td>
+            <td>Kaniz@example.com</td>
+            <td>Business Owner</td>
+            <td>
+              <button class="btn btn-primary">Edit</button>
+              <button class="btn btn-danger">Suspend</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Business Management -->
+      <h3>Business Management</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Business Name</th>
+            <th>Category</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>KFC</td>
+            <td>Restaurant</td>
+            <td>Approved</td>
+            <td>
+              <button class="btn btn-primary">Edit</button>
+              <button class="btn btn-danger">Suspend</button>
+            </td>
+          </tr>
+          <tr>
+            <td>One-plus</td>
+            <td>Mobile</td>
+            <td>Pending</td>
+            <td>
+              <button class="btn btn-primary">Approve</button>
+              <button class="btn btn-danger">Reject</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Review Management -->
+      <h3>Review Management</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Review ID</th>
+            <th>Business</th>
+            <th>Rating</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>123</td>
+            <td>One-plus</td>
+            <td>5 Stars</td>
+            <td><button class="btn btn-danger">Flag</button></td>
+          </tr>
+          <tr>
+            <td>456</td>
+            <td>KFC</td>
+            <td>3 Stars</td>
+            <td><button class="btn btn-danger">Flag</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 AI-Blockchain Review System. All rights reserved.</p>
+  </footer>
+</body>
+</html>

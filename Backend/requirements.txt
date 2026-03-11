@@ -1,0 +1,15 @@
+# Django & REST
+Django>=5.2
+djangorestframework>=3.14
+django-cors-headers>=4.3
+djangorestframework-simplejwt>=5.3
+psycopg2-binary>=2.9
+
+# AI / NLP (Llama 3.2)
+torch>=2.0
+transformers>=4.36
+peft>=0.7
+accelerate>=0.25
+
+# Web3 (Blockchain)
+web3>=6.0

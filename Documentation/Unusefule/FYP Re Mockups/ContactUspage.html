@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Us - AI-Blockchain Review System</title>
+  <style>
+    /* CSS Variables for Theme Switching */
+    :root {
+      /* Light Theme (Blue-Gray) */
+      --bg-color: #f8fafc;
+      --text-color: #1e293b;
+      --header-bg: #ffffff;
+      --header-text: #1e40af;
+      --primary-accent: #1e40af;
+      --primary-hover: #1e3a8a;
+      --secondary-bg: #e2e8f0;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --footer-bg: #1e293b;
+      --footer-text: #f8fafc;
+      --input-bg: #ffffff;
+      --input-border: #cbd5e1;
+      --input-text: #1e293b;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dark Theme (Navy-Blue) */
+    .dark-mode {
+      --bg-color: #0f172a;
+      --text-color: #e2e8f0;
+      --header-bg: #1e293b;
+      --header-text: #93c5fd;
+      --primary-accent: #3b82f6;
+      --primary-hover: #2563eb;
+      --secondary-bg: #1e293b;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --footer-bg: #020617;
+      --footer-text: #94a3b8;
+      --input-bg: #334155;
+      --input-border: #475569;
+      --input-text: #e2e8f0;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--header-bg);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+      color: var(--header-text);
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      color: var(--header-text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
+
+    header nav ul li a:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+    }
+
+    /* Contact Section */
+    .contact {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 80vh;
+      padding: 2rem;
+      background-color: var(--secondary-bg);
+    }
+
+    .contact-container {
+      background-color: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      border: 1px solid var(--card-border);
+    }
+
+    .contact-container h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .contact-container input,
+    .contact-container textarea {
+      width: 90%;
+      padding: 0.8rem;
+      margin: 0.8rem 0;
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      background-color: var(--input-bg);
+      color: var(--input-text);
+    }
+
+    .contact-container textarea {
+      resize: vertical;
+      height: 150px;
+    }
+
+    .contact-container button {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .contact-container button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* About Me Section */
+    .about-me {
+      padding: 3rem 2rem;
+      text-align: center;
+      background-color: var(--secondary-bg);
+      border-top: 1px solid var(--card-border);
+    }
+
+    .about-me h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .about-me p {
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .about-me .details {
+      margin-top: 1.5rem;
+      text-align: left;
+      display: inline-block;
+    }
+
+    .about-me .details p {
+      margin: 0.5rem 0;
+      font-weight: 500;
+    }
+
+    .about-me .details strong {
+      color: var(--primary-accent);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      background-color: var(--footer-bg);
+      color: var(--footer-text);
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 768px) {
+      .contact {
+        padding: 1rem;
+      }
+      .contact-container {
+        padding: 1.5rem;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Theme Toggle Button -->
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">AI-Blockchain Review</div>
+    <nav>
+      <ul>
+        <li><a href="Homepage.html">Home</a></li>
+        <li><a href="Aboutpage.html">About</a></li>
+        <li><a href="Loginpage.html">Login</a></li>
+        <li><a href="Signuppage.html">Sign Up</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Contact Section -->
+  <section class="contact">
+    <div class="contact-container">
+      <h2>Contact Us</h2>
+      <form>
+        <input type="text" placeholder="Your Name" required>
+        <input type="email" placeholder="Your Email" required>
+        <input type="text" placeholder="Subject" required>
+        <textarea placeholder="Your Message" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- About Me Section -->
+  <section class="about-me">
+    <h2>About Me</h2>
+    <p>
+      Hi, I'm Muhammed Anas, the creator of this platform. I'm passionate about building innovative solutions using AI and Blockchain technology. Feel free to reach out to me for any inquiries or collaborations!
+    </p>
+    <div class="details">
+      <p><strong>Name:</strong> Muhammed Anas</p>
+      <p><strong>Contact No:</strong> 03350579760</p>
+      <p><strong>Email:</strong> m13211911@gmail.com</p>
+      <p><strong>Address:</strong> Adamzai Akora Khattak, Nowshera</p>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 AI-Blockchain Review System. All rights reserved.</p>
+  </footer>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const btn = document.querySelector('.theme-toggle');
+      btn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+  </script>
+</body>
+</html>

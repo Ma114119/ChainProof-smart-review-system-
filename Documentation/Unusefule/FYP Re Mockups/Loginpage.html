@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - AI-Blockchain Review System</title>
+  <style>
+    /* CSS Variables for Theme Switching */
+    :root {
+      /* Light Theme (Blue-Gray) */
+      --bg-color: #f8fafc;
+      --text-color: #1e293b;
+      --header-bg: #ffffff;
+      --header-text: #1e40af;
+      --primary-accent: #1e40af;
+      --primary-hover: #1e3a8a;
+      --secondary-bg: #e2e8f0;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --footer-bg: #1e293b;
+      --footer-text: #f8fafc;
+      --input-bg: #ffffff;
+      --input-border: #cbd5e1;
+      --input-text: #1e293b;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dark Theme (Navy-Blue) */
+    .dark-mode {
+      --bg-color: #0f172a;
+      --text-color: #e2e8f0;
+      --header-bg: #1e293b;
+      --header-text: #93c5fd;
+      --primary-accent: #3b82f6;
+      --primary-hover: #2563eb;
+      --secondary-bg: #1e293b;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --footer-bg: #020617;
+      --footer-text: #94a3b8;
+      --input-bg: #334155;
+      --input-border: #475569;
+      --input-text: #e2e8f0;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Global Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--header-bg);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+      color: var(--header-text);
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      color: var(--header-text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
+
+    header nav ul li a:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+    }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      width: 100%;
+      min-height: 80vh;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Left Container (Intro Text) */
+    .intro-container {
+      flex: 1;
+      min-width: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--secondary-bg);
+      color: var(--text-color);
+      padding: 40px;
+      text-align: center;
+      min-height: 50vh;
+    }
+
+    .intro-container h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .intro-container p {
+      font-size: 1.1rem;
+      max-width: 400px;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .intro-container a {
+      color: var(--primary-accent);
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .intro-container a:hover {
+      text-decoration: underline;
+    }
+
+    /* Right Container (Login Form) */
+    .login-container {
+      flex: 1;
+      min-width: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--card--bg);
+      min-height: 50vh;
+    }
+
+    .login-box {
+      background-color: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 380px;
+      max-width: 90%;
+      text-align: center;
+      border: 1px solid var(--card-border);
+    }
+
+    .login-box h2 {
+      color: var(--primary-accent);
+      margin-bottom: 1.5rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.8rem;
+    }
+
+    .login-box select,
+    .login-box input {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.8rem 0;
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      background-color: var(--input-bg);
+      color: var(--input-text);
+    }
+
+    .login-box button {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .login-box button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .links {
+      margin-top: 1.5rem;
+    }
+
+    .links a {
+      color: var(--primary-accent);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .links a:hover {
+      text-decoration: underline;
+    }
+
+    .links p {
+      color: var(--text-color);
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      background-color: var(--footer-bg);
+      color: var(--footer-text);
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+ 
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+      .intro-container, .login-container {
+        width: 100%;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Theme Toggle Button -->
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">AI-Blockchain Review</div>
+    <nav>
+      <ul>
+        <li><a href="Homepage.html">Home</a></li>
+        <li><a href="Aboutpage.html">About</a></li>
+        <li><a href="ContactUspage.html">Contact-Us</a></li>
+        <li><a href="Signuppage.html">Sign Up</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Left Container (Intro Text) -->
+    <div class="intro-container">
+      <h1>Welcome to Our Platform</h1>
+      <p>Our platform ensures genuine and AI-powered reviews with blockchain security. Join us today to share and explore authentic customer feedback.</p>
+      <p>If you want to join us, click on the <a href="Signuppage.html">Sign-up</a> to create an account with us.</p>
+    </div>
+
+    <!-- Right Container (Login Form) -->
+    <div class="login-container">
+      <div class="login-box">
+        <h2>Login to Your Account</h2>
+        <form>
+          <select required>
+            <option value="" disabled selected>Select Role</option>
+            <option value="admin">Admin</option>
+            <option value="business-owner">Business Owner</option>
+            <option value="customer">Customer</option>
+          </select>
+          <input type="email" placeholder="Email" required>
+          <input type="password" placeholder="Password" required>
+          <button type="submit">Login</button>
+        </form>
+        <div class="links">
+          <a href="#">Forgot Password?</a>
+          <p>Don't have an account? <a href="Signuppage.html">Register</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 AI-Blockchain Review System. All rights reserved.</p>
+  </footer>
+
+  </script>
+</body>
+</html>

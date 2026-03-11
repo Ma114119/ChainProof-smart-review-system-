@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer - AI-Blockchain Review System</title>
+  <style>
+    /* CSS Variables for Theme Switching */
+    :root {
+      /* Light Theme (Blue-Gray) */
+      --bg-color: #f8fafc;
+      --text-color: #1e293b;
+      --header-bg: #ffffff;
+      --header-text: #1e40af;
+      --primary-accent: #1e40af;
+      --primary-hover: #1e3a8a;
+      --secondary-bg: #e2e8f0;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --footer-bg: #1e293b;
+      --footer-text: #f8fafc;
+      --button-danger: #dc2626;
+      --button-danger-hover: #b91c1c;
+      --star-color: #ffd700;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Dark Theme (Navy-Blue) */
+    .dark-mode {
+      --bg-color: #0f172a;
+      --text-color: #e2e8f0;
+      --header-bg: #1e293b;
+      --header-text: #93c5fd;
+      --primary-accent: #3b82f6;
+      --primary-hover: #2563eb;
+      --secondary-bg: #0f172a;
+      --card-bg: #1e293b;
+      --card-border: #334155;
+      --footer-bg: #020617;
+      --footer-text: #94a3b8;
+      --button-danger: #ef4444;
+      --button-danger-hover: #dc2626;
+      --star-color: #ffd700;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--header-bg);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-icons {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    header .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+      color: var(--header-text);
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      color: var(--header-text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
+
+    header nav ul li a:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+    }
+
+    /* Header Icons */
+    .profile-icon, .wallet-icon {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--header-text);
+      transition: all 0.3s ease;
+    }
+
+    .profile-icon:hover, .wallet-icon:hover {
+      transform: scale(1.1);
+    }
+
+    /* Dropdowns */
+    .profile-dropdown, .wallet-dropdown {
+      display: none;
+      position: absolute;
+      right: 2rem;
+      top: 4.5rem;
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      width: 300px;
+      z-index: 1000;
+    }
+
+    .profile-dropdown.active, .wallet-dropdown.active {
+      display: block;
+    }
+
+    .dropdown-header {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .dropdown-content p {
+      margin: 0.5rem 0;
+    }
+
+    .dropdown-content strong {
+      color: var(--primary-accent);
+    }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      min-height: calc(100vh - 120px);
+    }
+
+    /* Dashboard Section */
+    .dashboard {
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 1200px;
+      border: 1px solid var(--card-border);
+    }
+
+    .dashboard h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    /* Metrics */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .metric {
+      background-color: var(--secondary-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .metric h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary-accent);
+    }
+
+    .metric p {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Browse Businesses Section */
+    .businesses {
+      margin-bottom: 2rem;
+    }
+
+    .businesses h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-bar input {
+      flex: 1;
+      padding: 0.8rem;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    .search-bar button {
+      padding: 0.8rem 1.5rem;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .search-bar button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .business-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .business-card {
+      background-color: var(--secondary-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .business-card h4 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary-accent);
+    }
+
+    .business-card p {
+      margin: 0.5rem 0;
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Submit Review Section */
+    .submit-review {
+      margin-bottom: 2rem;
+      background-color: var(--secondary-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .submit-review h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .star-rating {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .star-rating span {
+      font-size: 1.5rem;
+      color: var(--star-color);
+      cursor: pointer;
+    }
+
+    .submit-review textarea {
+      width: 95%;
+      padding: 0.8rem;
+      margin: 0.5rem 0;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100px;
+    }
+
+    .submit-review button {
+      padding: 0.8rem 1.5rem;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-review button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Modal for Business Details */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .modal-content {
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      border: 1px solid var(--card-border);
+      box-shadow: var(--shadow);
+    }
+
+    .modal-content h4 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .modal-content p {
+      margin: 0.5rem 0;
+    }
+
+    .modal-content strong {
+      color: var(--primary-accent);
+    }
+
+    .modal-content button {
+      padding: 0.8rem 1.5rem;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .modal-content button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      background-color: var(--footer-bg);
+      color: var(--footer-text);
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    /* Theme Toggle Button */
+    .theme-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 15px;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      font-weight: 600;
+      z-index: 1000;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 768px) {
+      .metrics {
+        grid-template-columns: 1fr 1fr;
+      }
+      
+      .business-list {
+        grid-template-columns: 1fr;
+      }
+      
+      .search-bar {
+        flex-direction: column;
+      }
+      
+      .search-bar button {
+        width: 100%;
+      }
+      
+      .profile-dropdown, .wallet-dropdown {
+        width: 250px;
+        right: 1rem;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <!-- Theme Toggle Button -->
+  <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+
+  <!-- Header -->
+  <header>
+    <div class="logo">AI-Blockchain Review</div>
+    <div class="header-icons">
+      <nav>
+        <ul>
+          <li><a href="Homepage.html">Home</a></li>
+          <li><a href="Aboutpage.html">About</a></li>
+          <li><a href="ContactUspage.html">Contact-Us</a></li>
+        </ul>
+      </nav>
+      <i class="fas fa-wallet wallet-icon" onclick="toggleWalletDropdown()"></i>
+      <i class="fas fa-user-circle profile-icon" onclick="toggleProfileDropdown()"></i>
+    </div>
+    
+    <!-- Profile Dropdown -->
+    <div class="profile-dropdown" id="profileDropdown">
+      <div class="dropdown-header">Your Profile</div>
+      <div class="dropdown-content">
+        <p><strong>Name:</strong> Muhammed Anas</p>
+        <p><strong>Email:</strong> m13211911@gmail.com</p>
+        <p><strong>Address:</strong> Adamzai Akora Khattak, Nowshera</p>
+      </div>
+    </div>
+    
+    <!-- Wallet Dropdown -->
+    <div class="wallet-dropdown" id="walletDropdown">
+      <div class="dropdown-header">Wallet Details</div>
+      <div class="dropdown-content">
+        <p><strong>Current Balance:</strong> 30 Coins</p>
+        <p><strong>Recent Transactions:</strong></p>
+        <ul>
+          <li>Earned 10 Coins for Review #123</li>
+          <li>Spent 20 Coins on Reward #456</li>
+        </ul>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Dashboard Section -->
+    <div class="dashboard">
+      <h2>Customer Dashboard</h2>
+
+      <!-- Metrics -->
+      <div class="metrics">
+        <div class="metric">
+          <h3>Recent Activity</h3>
+          <p>5 Reviews</p>
+        </div>
+        <div class="metric">
+          <h3>Coins Earned</h3>
+          <p>50</p>
+        </div>
+        <div class="metric">
+          <h3>Coins Spent</h3>
+          <p>20</p>
+        </div>
+        <div class="metric">
+          <h3>Current Balance</h3>
+          <p>30 Coins</p>
+        </div>
+      </div>
+
+      <!-- Browse Businesses Section -->
+      <div class="businesses">
+        <h3>Browse Businesses</h3>
+        <div class="search-bar">
+          <input type="text" placeholder="Search for a business...">
+          <button>Search</button>
+        </div>
+        <div class="business-list">
+          <div class="business-card">
+            <h4>Business A</h4>
+            <p><strong>Category:</strong> Restaurant</p>
+            <p><strong>Rating:</strong> 4.5 Stars</p>
+            <button class="btn btn-primary" onclick="openModal('Business A', 'Restaurant', '4.5 Stars', 'A great place to dine and relax.')">View Details</button>
+          </div>
+          <div class="business-card">
+            <h4>Business B</h4>
+            <p><strong>Category:</strong> Retail</p>
+            <p><strong>Rating:</strong> 3.8 Stars</p>
+            <button class="btn btn-primary" onclick="openModal('Business B', 'Retail', '3.8 Stars', 'A wide range of products available.')">View Details</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Review Section -->
+      <div class="submit-review">
+        <h3>Submit a Review</h3>
+        <div class="star-rating">
+          <span onclick="rate(1)">&#9733;</span>
+          <span onclick="rate(2)">&#9733;</span>
+          <span onclick="rate(3)">&#9733;</span>
+          <span onclick="rate(4)">&#9733;</span>
+          <span onclick="rate(5)">&#9733;</span>
+        </div>
+        <textarea placeholder="Your Review"></textarea>
+        <button>Submit Review</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 AI-Blockchain Review System. All rights reserved.</p>
+  </footer>
+
+  <!-- Modal for Business Details -->
+  <div class="modal" id="businessModal">
+    <div class="modal-content">
+      <h4 id="modalTitle"></h4>
+      <p><strong>Category:</strong> <span id="modalCategory"></span></p>
+      <p><strong>Rating:</strong> <span id="modalRating"></span></p>
+      <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+      <button onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    // Star Rating System
+    let selectedRating = 0;
+
+    function rate(rating) {
+      selectedRating = rating;
+      const stars = document.querySelectorAll('.star-rating span');
+      stars.forEach((star, index) => {
+        star.style.color = index < rating ? 'var(--star-color)' : '#ccc';
+      });
+    }
+
+    // Dropdown Toggles
+    function toggleProfileDropdown() {
+      const profileDropdown = document.getElementById('profileDropdown');
+      const walletDropdown = document.getElementById('walletDropdown');
+      profileDropdown.classList.toggle('active');
+      walletDropdown.classList.remove('active');
+    }
+
+    function toggleWalletDropdown() {
+      const walletDropdown = document.getElementById('walletDropdown');
+      const profileDropdown = document.getElementById('profileDropdown');
+      walletDropdown.classList.toggle('active');
+      profileDropdown.classList.remove('active');
+    }
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function(event) {
+      const profileDropdown = document.getElementById('profileDropdown');
+      const walletDropdown = document.getElementById('walletDropdown');
+      const profileIcon = document.querySelector('.profile-icon');
+      const walletIcon = document.querySelector('.wallet-icon');
+      
+      if (!profileDropdown.contains(event.target) && event.target !== profileIcon) {
+        profileDropdown.classList.remove('active');
+      }
+      
+      if (!walletDropdown.contains(event.target) && event.target !== walletIcon) {
+        walletDropdown.classList.remove('active');
+      }
+    });
+
+    // Modal for Business Details
+    function openModal(name, category, rating, description) {
+      const modal = document.getElementById('businessModal');
+      document.getElementById('modalTitle').textContent = name;
+      document.getElementById('modalCategory').textContent = category;
+      document.getElementById('modalRating').textContent = rating;
+      document.getElementById('modalDescription').textContent = description;
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('businessModal');
+      modal.style.display = 'none';
+    }
+
+    // Theme Toggle
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      const btn = document.querySelector('.theme-toggle');
+      btn.textContent = document.body.classList.contains('dark-mode') ? '☀️ Light Mode' : '🌙 Dark Mode';
+    }
+  </script>
+</body>
+</html>

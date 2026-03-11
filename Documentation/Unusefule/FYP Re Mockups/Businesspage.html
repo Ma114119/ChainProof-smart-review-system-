@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Business Owner - AI-Blockchain Review System</title>
+  <style>
+    /* CSS Variables for Light Theme (Blue-Gray) */
+    :root {
+      --bg-color: #f8fafc;
+      --text-color: #1e293b;
+      --header-bg: #ffffff;
+      --header-text: #1e40af;
+      --primary-accent: #1e40af;
+      --primary-hover: #1e3a8a;
+      --secondary-bg: #e2e8f0;
+      --card-bg: #ffffff;
+      --card-border: #cbd5e1;
+      --footer-bg: #1e293b;
+      --footer-text: #f8fafc;
+      --button-danger: #dc2626;
+      --button-danger-hover: #b91c1c;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Global Styles */
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: all 0.3s ease;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--header-bg);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-icons {
+      display: flex;
+      gap: 1.5rem;
+      align-items: center;
+    }
+
+    header .logo {
+      font-size: 1.8rem;
+      font-weight: bold;
+      font-family: 'Poppins', sans-serif;
+      color: var(--header-text);
+    }
+
+    header nav ul {
+      list-style: none;
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    header nav ul li a {
+      color: var(--header-text);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.3s ease;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+    }
+
+    header nav ul li a:hover {
+      background-color: rgba(30, 64, 175, 0.1);
+    }
+
+    /* Profile Dropdown */
+    .profile-icon {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--header-text);
+      transition: all 0.3s ease;
+    }
+
+    .profile-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      right: 2rem;
+      top: 4.5rem;
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 1.5rem;
+      width: 300px;
+      z-index: 1000;
+    }
+
+    .profile-dropdown.active {
+      display:inline-block;
+    }
+
+    .profile-dropdown h3 {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .profile-dropdown p {
+      margin: 0.5rem 0;
+    }
+
+    .profile-dropdown strong {
+      color: var(--primary-accent);
+    }
+
+    /* Main Container */
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      min-height: calc(100vh - 120px);
+    }
+
+    /* Registration Section */
+    .registration {
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+      border: 1px solid var(--card-border);
+    }
+
+    .registration h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .registration input,
+    .registration textarea {
+      width: 100%;
+      padding: 0.8rem;
+      margin: 0.8rem 0;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      font-size: 1rem;
+      outline: none;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    .registration textarea {
+      resize: vertical;
+      height: 120px;
+    }
+
+    .registration button {
+      width: 100%;
+      padding: 0.8rem;
+      background-color: var(--primary-accent);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .registration button:hover {
+      background-color: var(--primary-hover);
+    }
+
+    /* Dashboard Section */
+    .dashboard {
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      width: 100%;
+      max-width: 1200px;
+      border: 1px solid var(--card-border);
+      display: none;
+    }
+
+    .dashboard h2 {
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .dashboard-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+
+    .wallet-icon {
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--primary-accent);
+      transition: all 0.3s ease;
+    }
+
+    .wallet-icon:hover {
+      transform: scale(1.1);
+    }
+
+    .wallet-details {
+      display: none;
+      background-color: var(--secondary-bg);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      margin-bottom: 1rem;      
+      box-shadow: var(--shadow);
+    }
+
+    .wallet-details p {
+      margin: 0.5rem 0;
+      font-weight: 500;
+    }
+
+    .wallet-details.active {
+      display: block;
+    }
+
+    /* Metrics */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .metric {
+      background-color: var(--secondary-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+
+    .metric h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary-accent);
+    }
+
+    .metric p {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    /* Reviews Section */
+    .reviews {
+      margin-bottom: 2rem;
+    }
+
+    .reviews h3 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--primary-accent);
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .review {
+      background-color: var(--secondary-bg);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+    }
+
+    .review p {
+      margin: 0.5rem 0;
+    }
+
+    .review strong {
+      color: var(--primary-accent);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn-danger {
+      background-color: var(--button-danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: var(--button-danger-hover);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      background-color: var(--footer-bg);
+      color: var(--footer-text);
+    }
+
+    footer p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 768px) {
+      .metrics {
+        grid-template-columns: 1fr;
+      }
+      
+      .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .wallet-icon {
+        margin-top: 1rem;
+        align-self: flex-end;
+      }
+      
+      .profile-dropdown {
+        width: 250px;
+        right: 1rem;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="logo">AI-Blockchain Review</div>
+    <div class="header-icons">
+      <nav>
+        <ul>
+          <li><a href="Homepage.html">Home</a></li>
+          <li><a href="Aboutpage.html">About</a></li>
+          <li><a href="ContactUspage.html">Contact-Us</a></li>
+          <li><a href="Loginpage.html">Logout</a></li>
+        </ul>
+      </nav>
+      <i class="fas fa-user-circle profile-icon" onclick="toggleProfileDropdown()"></i>
+    </div>
+    
+    <!-- Profile Dropdown -->
+    <div class="profile-dropdown" id="profileDropdown">
+      <h3>Business Profile</h3>
+      <p><strong>Name:</strong> <span id="dropdownBusinessName"></span></p>
+      <p><strong>Category:</strong> <span id="dropdownBusinessCategory"></span></p>
+      <p><strong>Description:</strong> <span id="dropdownBusinessDescription"></span></p>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Business Registration Section -->
+    <div class="registration" id="registrationSection">
+      <h2>Register Your Business</h2>
+      <input type="text" placeholder="Business Name" id="businessName">
+      <input type="text" placeholder="Category" id="businessCategory">
+      <textarea placeholder="Description" id="businessDescription"></textarea>
+      <button onclick="registerBusiness()">Register</button>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div class="dashboard" id="dashboardSection">
+      <div class="dashboard-header">
+        <h2>Business Owner Dashboard</h2>
+        <i class="fas fa-wallet wallet-icon" onclick="toggleWalletDetails()"></i>
+      </div>
+      <div class="wallet-details">
+        <p><strong>Current Balance:</strong> 500 Coins</p>
+        <p><strong>Recent Transactions:</strong></p>
+        <ul>
+          <li>Earned 100 Coins for Review #123</li>
+          <li>Spent 50 Coins on Promotion #456</li>
+        </ul>
+      </div>
+
+      <!-- Metrics -->
+      <div class="metrics">
+        <div class="metric">
+          <h3>Total Reviews</h3>
+          <p>123</p>
+        </div>
+        <div class="metric">
+          <h3>Average Rating</h3>
+          <p>4.5 Stars</p>
+        </div>
+        <div class="metric">
+          <h3>Customer Sentiment</h3>
+          <p>Positive</p>
+        </div>
+        <div class="metric">
+          <h3>Available Coins</h3>
+          <p>500</p>
+        </div>
+      </div>
+
+      <!-- Review Management Section -->
+      <div class="reviews">
+        <h3>Customer Reviews</h3>
+        <div class="review">
+          <p><strong>Muhammad Anas</strong> - 5 Stars</p>
+          <p>Amazing food and service!</p>
+          <button class="btn btn-primary">Respond</button>
+          <button class="btn btn-danger">Flag</button>
+        </div>
+        <div class="review">
+          <p><strong>Kaniz Memona</strong> - 4 Stars</p>
+          <p>Good experience, but a bit pricey.</p>
+          <button class="btn btn-primary">Respond</button>
+          <button class="btn btn-danger">Flag</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>&copy; 2025 AI-Blockchain Review System. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Business Registration
+    function registerBusiness() {
+      const businessName = document.getElementById('businessName').value;
+      const businessCategory = document.getElementById('businessCategory').value;
+      const businessDescription = document.getElementById('businessDescription').value;
+
+      if (businessName && businessCategory && businessDescription) {
+        // Hide registration section
+        document.getElementById('registrationSection').style.display = 'none';
+
+        // Show dashboard section
+        const dashboardSection = document.getElementById('dashboardSection');
+        dashboardSection.style.display = 'block';
+
+        // Update profile dropdown
+        document.getElementById('dropdownBusinessName').textContent = businessName;
+        document.getElementById('dropdownBusinessCategory').textContent = businessCategory;
+        document.getElementById('dropdownBusinessDescription').textContent = businessDescription;
+      } else {
+        alert('Please fill out all fields.');
+      }
+    }
+
+    // Wallet Details Toggle
+    function toggleWalletDetails() {
+      const walletDetails = document.querySelector('.wallet-details');
+      walletDetails.classList.toggle('active');
+    }
+
+    // Profile Dropdown Toggle
+    function toggleProfileDropdown() {
+      const profileDropdown = document.getElementById('profileDropdown');
+      profileDropdown.classList.toggle('active');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(event) {
+      const profileDropdown = document.getElementById('profileDropdown');
+      const profileIcon = document.querySelector('.profile-icon');
+      
+      if (!profileDropdown.contains(event.target) && event.target !== profileIcon) {
+        profileDropdown.classList.remove('active');
+      }
+    });
+  </script>
+</body>
+</html>
