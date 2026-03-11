@@ -12,6 +12,10 @@ BASE_MODEL = "meta-llama/Llama-3.2-1B-Instruct"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ADAPTER_PATH = os.path.join(BASE_DIR, 'ai_weights')
 
+# Initialize before try block — if loading fails, these stay None so we can handle gracefully
+tokenizer = None
+model = None
+
 print("Starting the 'Lite' Engine (Perfect for your drive space)...")
 
 try:
@@ -29,7 +33,7 @@ try:
     # 3. Attach your "Brain" (The weights you unzipped)
     # We use 'safe_merge' to ensure it doesn't crash
     model = PeftModel.from_pretrained(model, ADAPTER_PATH)
-    print("SUCCESS! AI is alive and fits perfectly on your drive.")
+    print("✔ SUCCESS! AI is alive and fits perfectly on your drive.")
 
 except Exception as e:
     print(f"Error: {e}")
@@ -48,6 +52,9 @@ def _contains_profanity(text):
 
 # --- 1. REVIEW SUGGESTION GENERATOR ---
 def generate_review_suggestion(business_name, business_category, sentiment_type):
+    if tokenizer is None or model is None:
+        raise RuntimeError("AI model failed to load at startup. Check server logs for details.")
+
     instruction = f"Write a 2-sentence {sentiment_type} review for a {business_category} named {business_name}. Output ONLY the review text."
 
     prompt = (
@@ -75,6 +82,13 @@ def rewrite_unethical_review(raw_text):
     # Skip AI entirely if the review is already clean — fastest path
     if not _contains_profanity(raw_text):
         return raw_text
+
+    if tokenizer is None or model is None:
+        # AI unavailable — return raw text with profanity stripped as fallback
+        clean_text = raw_text.lower()
+        for word in PROFANITY_LIST:
+            clean_text = clean_text.replace(word, "[unprofessional term]")
+        return clean_text if clean_text.strip() else raw_text
 
     # Replace profanity with neutral placeholders
     clean_text = raw_text.lower()
