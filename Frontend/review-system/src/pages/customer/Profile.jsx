@@ -5,6 +5,7 @@ import {
   updateMyProfile,
   updateMyProfileWithPicture,
   fetchMyReviews,
+  fetchCustomerBalance,
   clearAuthData,
   changePassword,
   fetchMyBookmarks,
@@ -93,19 +94,24 @@ function CustomerProfile() {
 
   const loadProfile = useCallback(async () => {
     try {
-      const [profile, myReviews] = await Promise.all([fetchMyProfile(), fetchMyReviews()]);
+      const [profile, myReviews, balanceData] = await Promise.all([
+        fetchMyProfile(),
+        fetchMyReviews(),
+        fetchCustomerBalance().catch(() => ({ balance: 0 })),
+      ]);
       const displayName = profile.display_name || profile.username;
       const approved = (myReviews || []).filter(r => r.status === 'Approved');
       const avgR = approved.length > 0
         ? parseFloat((approved.reduce((a, r) => a + r.rating, 0) / approved.length).toFixed(1))
         : 0;
       const walletAddress = profile.wallet_address || '';
+      const coins = balanceData?.balance ?? 0;
       const fresh = {
         name: displayName,
         email: profile.email,
         joinDate: profile.date_joined || '',
         totalReviews: myReviews.length,
-        coins: approved.length,
+        coins,
         avgRating: avgR,
         walletAddress,
         profilePictureUrl: profile.profile_picture_url || null,

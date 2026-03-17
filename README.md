@@ -155,6 +155,7 @@ ChainProof/
 ├── Frontend/review-system/    # React app
 ├── Smart Contracts/           # Solidity (ReviewLedger, SmartReviewToken)
 └── Documentation/
+    └── Technical_Reference/   # Gold-standard docs (Backend, AI, Blockchain, Frontend, System Flow)
 ```
 
 ---
@@ -177,6 +178,20 @@ ChainProof/
 3. User enters 6-digit code (2-min countdown timer)
 4. Resend OTP available if code expires
 5. On verify → `CustomUser` created; business created if owner
+
+---
+
+## 📚 Technical Reference
+
+**Gold-standard documentation** for evaluators and technical partners:
+
+| Document | Location | Contents |
+|----------|----------|----------|
+| Backend Architecture | `Documentation/Technical_Reference/Backend_Architecture.md` | Models, API, serializers, examiner Q&A, DB schema |
+| AI System | `Documentation/Technical_Reference/AI_System.md` | Llama 3.2, LoRA, sentiment sanitization |
+| Blockchain Logic | `Documentation/Technical_Reference/Blockchain_Logic.md` | Ganache, ReviewLedger, SRT, Web3 |
+| Frontend Guide | `Documentation/Technical_Reference/Frontend_Guide.md` | JWT, roles, protected routes |
+| System Flow | `Documentation/Technical_Reference/System_Flow.md` | Master flow: OTP → AI review → blockchain reward |
 
 ---
 
