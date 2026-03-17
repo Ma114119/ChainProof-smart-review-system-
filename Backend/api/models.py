@@ -17,6 +17,28 @@ class CustomUser(AbstractUser):
     bonus_coins = models.IntegerField(default=0)  # Admin-credited coins for testing/demos
 
 
+# --- PendingUser (OTP verification - stores registration data until email verified) ---
+class PendingUser(models.Model):
+    """Temporarily stores registration data and 6-digit OTP until email is verified."""
+    full_name = models.CharField(max_length=150)
+    email = models.EmailField(max_length=254)
+    password = models.CharField(max_length=128)  # Hashed
+    cnic = models.CharField(max_length=15)
+    role = models.CharField(max_length=20, default='customer')
+    # Business data (JSON) for owners - stores name, description, category, etc.
+    business_data = models.JSONField(default=dict, blank=True)
+    otp = models.CharField(max_length=6)
+    otp_expires_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Pending: {self.email}'
+
+    def is_otp_expired(self):
+        from django.utils import timezone
+        return timezone.now() >= self.otp_expires_at
+
+
 # --- System Settings (admin wallet, rates, etc.) ---
 class SystemSettings(models.Model):
     key = models.CharField(max_length=100, unique=True)

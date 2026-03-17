@@ -12,7 +12,7 @@ from .serializers import (
     BusinessSerializer, ReviewSerializer,
     MyTokenObtainPairSerializer, ChangePasswordSerializer, BookmarkSerializer
 )
-from .models import CustomUser, Business, Review, Bookmark, SystemSettings, OwnerCoinPurchaseRequest, CustomerPayoutRequest, WalletCredit, ContactSubmission, SupportThread, SupportMessage
+from .models import CustomUser, Business, Review, Bookmark, SystemSettings, OwnerCoinPurchaseRequest, CustomerPayoutRequest, WalletCredit, ContactSubmission, SupportThread, SupportMessage, PendingUser
 from .blockchain_service import store_review_hash
 
 
@@ -27,7 +27,188 @@ def is_admin(user):
 # ================================================================
 # AUTHENTICATION
 # ================================================================
+import random
+from django.conf import settings
+from django.core.mail import send_mail
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register_send_otp(request):
+    """Step 1: Accept user registration details, create PendingUser, send OTP email."""
+    data = request.data
+    full_name = (data.get('full_name') or '').strip()
+    email = (data.get('email') or '').strip().lower()
+    password = data.get('password', '')
+    cnic = (data.get('cnic') or '').strip()
+    role = data.get('role', 'customer')
+    business_data = data.get('business_data', {})
+
+    if not full_name or not email or not password or not cnic:
+        return Response({'detail': 'full_name, email, password, and cnic are required.'}, status=status.HTTP_400_BAD_REQUEST)
+    if CustomUser.objects.filter(email=email).exists():
+        return Response({'detail': 'A user with this email already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Delete any existing pending user for this email
+    PendingUser.objects.filter(email=email).delete()
+
+    otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    expiry_minutes = getattr(settings, 'OTP_EXPIRY_MINUTES', 2)
+    otp_expires_at = timezone.now() + timezone.timedelta(minutes=expiry_minutes)
+
+    from django.contrib.auth.hashers import make_password
+    pending = PendingUser.objects.create(
+        full_name=full_name,
+        email=email,
+        password=make_password(password),
+        cnic=cnic,
+        role=role,
+        business_data=business_data,
+        otp=otp,
+        otp_expires_at=otp_expires_at,
+    )
+
+    try:
+        send_mail(
+            subject='Your ChainProof Verification Code',
+            message=f'Your OTP is: {otp}\n\nThis code expires in {expiry_minutes} minutes.',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        if settings.DEBUG:
+            print(f'[DEV] OTP sent to {email}: {otp}')
+    except Exception as e:
+        if settings.DEBUG:
+            print(f'[DEV] Email failed. OTP for {email}: {otp} (use this to test)')
+        pending.delete()
+        return Response({'detail': f'Failed to send email: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    expires_in_seconds = expiry_minutes * 60
+    return Response({
+        'pending_id': pending.id,
+        'expires_in_seconds': expires_in_seconds,
+        'detail': f'OTP sent to {email}. Check your inbox.',
+    })
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register_resend_otp(request):
+    """Resend OTP to the same email (e.g. when code expired)."""
+    data = request.data
+    pending_id = data.get('pending_id')
+
+    if not pending_id:
+        return Response({'detail': 'pending_id is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        pending = PendingUser.objects.get(pk=pending_id)
+    except PendingUser.DoesNotExist:
+        return Response({'detail': 'Registration session expired. Please start over from the form.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    email = pending.email
+    otp = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    expiry_minutes = getattr(settings, 'OTP_EXPIRY_MINUTES', 2)
+    otp_expires_at = timezone.now() + timezone.timedelta(minutes=expiry_minutes)
+
+    pending.otp = otp
+    pending.otp_expires_at = otp_expires_at
+    pending.save()
+
+    try:
+        send_mail(
+            subject='Your ChainProof Verification Code (Resent)',
+            message=f'Your new OTP is: {otp}\n\nThis code expires in {expiry_minutes} minutes.',
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        if settings.DEBUG:
+            print(f'[DEV] OTP resent to {email}: {otp}')
+    except Exception as e:
+        if settings.DEBUG:
+            print(f'[DEV] Resend email failed. OTP for {email}: {otp}')
+        return Response({'detail': f'Failed to resend email: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    expires_in_seconds = expiry_minutes * 60
+    return Response({
+        'expires_in_seconds': expires_in_seconds,
+        'detail': f'New OTP sent to {email}. Check your inbox.',
+    })
+
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register_verify_otp(request):
+    """Step 2: Verify OTP and create the actual user (and business if owner)."""
+    data = request.data
+    pending_id = data.get('pending_id')
+    otp = (data.get('otp') or '').strip()
+
+    if not pending_id or not otp:
+        return Response({'detail': 'pending_id and otp are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        pending = PendingUser.objects.get(pk=pending_id)
+    except PendingUser.DoesNotExist:
+        return Response({'detail': 'Invalid or expired registration. Please start over.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if pending.is_otp_expired():
+        pending.delete()
+        return Response({'detail': 'OTP has expired. Please request a new one.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    if pending.otp != otp:
+        return Response({'detail': 'Invalid OTP. Please try again.'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Create the user
+    email = pending.email
+    username = email.split('@')[0]
+    counter = 1
+    while CustomUser.objects.filter(username=username).exists():
+        username = f"{email.split('@')[0]}{counter}"
+        counter += 1
+
+    full_name = pending.full_name
+    first_name = full_name.split(' ')[0]
+    last_name = ' '.join(full_name.split(' ')[1:]) if ' ' in full_name else ''
+
+    user = CustomUser(
+        username=username,
+        email=email,
+        first_name=first_name,
+        last_name=last_name,
+        role=pending.role,
+        cnic=pending.cnic,
+    )
+    user.password = pending.password  # Already hashed
+    user.save()
+
+    # If owner, create business
+    if pending.role == 'owner' and pending.business_data:
+        bd = pending.business_data
+        Business.objects.create(
+            owner=user,
+            name=bd.get('name', ''),
+            description=bd.get('description', ''),
+            category=bd.get('category', ''),
+            address=bd.get('address', ''),
+            phone_number=bd.get('phone_number', ''),
+            website_url=bd.get('website_url', '') or None,
+            establishment_year=int(bd['establishment_year']) if bd.get('establishment_year') else None,
+        )
+
+    pending.delete()
+
+    return Response({
+        'detail': 'Account created successfully.',
+        'user_id': user.id,
+        'email': user.email,
+    })
+
+
 class RegisterView(generics.CreateAPIView):
+    """Legacy direct registration (no OTP). Kept for backward compatibility."""
     queryset = CustomUser.objects.all()
     permission_classes = (permissions.AllowAny,)
     serializer_class = UserSerializer

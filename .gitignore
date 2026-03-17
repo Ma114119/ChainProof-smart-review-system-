@@ -53,9 +53,12 @@ Frontend/review-system/.env.production.local
 .DS_Store
 Thumbs.db
 
-# Environment
+# Environment (NEVER commit secrets)
 .env
 .env.local
+.env.*.local
+Backend/.env
+Frontend/review-system/.env
 *.local
 
 # Misc

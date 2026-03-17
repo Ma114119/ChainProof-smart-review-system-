@@ -108,6 +108,27 @@ export const apiRegister = (payload) =>
     body: JSON.stringify(payload),
   });
 
+/** Step 1: Submit registration details, receive OTP via email. Returns { pending_id, expires_in_seconds } */
+export const apiRegisterSendOtp = (payload) =>
+  loginFetch('/api/register/send-otp/', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+
+/** Step 2: Verify OTP and complete registration. */
+export const apiRegisterVerifyOtp = (pendingId, otp) =>
+  loginFetch('/api/register/verify-otp/', {
+    method: 'POST',
+    body: JSON.stringify({ pending_id: pendingId, otp }),
+  });
+
+/** Resend OTP when code expired. */
+export const apiRegisterResendOtp = (pendingId) =>
+  loginFetch('/api/register/resend-otp/', {
+    method: 'POST',
+    body: JSON.stringify({ pending_id: pendingId }),
+  });
+
 // =================================================================
 // PUBLIC BUSINESSES (no auth needed)
 // =================================================================

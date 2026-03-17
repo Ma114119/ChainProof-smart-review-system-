@@ -19,7 +19,7 @@ ADAPTER_PATH = os.path.join(BASE_DIR, 'ai_weights')
 tokenizer = None
 model = None
 
-print("Starting the 'Lite' Engine (Perfect for your drive space)...")
+print("♻️ Starting the 'Lite' Engine⚙️ (✅Perfect for your drive space)...")
 
 try:
     # 1. Load Tokenizer

@@ -68,7 +68,8 @@ Dedicated interfaces for **Customers**, **Business Owners**, and **Admins** — 
 | **AI / NLP** | Llama 3.2 (1B-Instruct) • Hugging Face Transformers • PEFT |
 | **Frontend** | React 19 • React Router |
 | **Blockchain** | Ganache • Solidity • Web3 |
-| **Auth** | JWT (Simple JWT) |
+| **Auth** | JWT (Simple JWT) • Email OTP Verification |
+| **Email** | Gmail SMTP (python-dotenv) |
 
 ---
 
@@ -85,11 +86,19 @@ python -m venv venv
 venv\Scripts\activate          # Windows
 # source venv/bin/activate     # Linux/Mac
 pip install -r requirements.txt
+
+# Create .env from example (REQUIRED for OTP emails)
+copy .env.example .env         # Windows
+# cp .env.example .env         # Linux/Mac
+# Edit .env with your Gmail App Password (see Environment Setup below)
+
 python manage.py migrate
 python manage.py runserver     # → http://127.0.0.1:8000
 ```
 
 > ⚠️ **AI Weights:** Place PEFT adapter in `Backend/ai_weights/`. Base model (Llama 3.2 1B) downloads from Hugging Face on first run.
+
+> 🔒 **`.env` is gitignored** — Your secrets stay local. Never commit `.env` to GitHub.
 
 ### 2️⃣ Ganache
 
@@ -108,6 +117,28 @@ npm start                      # → http://localhost:3000
 
 ---
 
+## ⚙️ Environment Setup (Backend)
+
+Create `Backend/.env` from the example:
+
+```bash
+cd Backend
+copy .env.example .env         # Windows
+```
+
+Edit `.env` with your values:
+
+| Variable | Description |
+|----------|-------------|
+| `EMAIL_HOST_USER` | Gmail address (e.g. `yourapp@gmail.com`) |
+| `EMAIL_HOST_PASSWORD` | [Gmail App Password](https://myaccount.google.com/apppasswords) (requires 2FA) |
+| `OTP_EXPIRY_MINUTES` | OTP validity (default: 2) |
+| `USE_CONSOLE_EMAIL` | Set to `1` if you get "getaddrinfo failed" — OTP prints in terminal |
+
+> 📧 **Gmail App Password:** Enable 2-Step Verification → App passwords → Generate for "Mail"
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -115,9 +146,12 @@ ChainProof/
 ├── Backend/                   # Django REST API
 │   ├── api/                   # Models, views, serializers
 │   │   ├── ai_service.py      # Llama 3.2 integration
-│   │   └── blockchain_service.py
+│   │   ├── blockchain_service.py
+│   │   └── models.py          # CustomUser, PendingUser, Business, Review...
 │   ├── smartreview_backend/   # Django config
-│   └── requirements.txt
+│   ├── .env.example           # Template (copy to .env)
+│   ├── requirements.txt
+│   └── EMAIL_OTP_TROUBLESHOOTING.md
 ├── Frontend/review-system/    # React app
 ├── Smart Contracts/           # Solidity (ReviewLedger, SmartReviewToken)
 └── Documentation/
@@ -129,12 +163,20 @@ ChainProof/
 
 | Feature | Description |
 |---------|-------------|
+| **Email OTP Verification** | 6-digit OTP sent via Gmail; 2-min expiry; Resend OTP button |
 | **Sentiment Sanitization** | AI rewrites profanity → constructive feedback |
 | **Smart Contract Rewards** | RTC earned per verified review |
 | **Role Dashboards** | Customer • Owner • Admin interfaces |
 | **Support Inbox** | In-app messaging with attachments |
 | **Contact Us** | Public form for visitors |
 | **Exchange Rate** | 1 RTC = 120 PKR (configurable) |
+
+### Registration Flow (Safe-Connect)
+1. User fills form (name, email, CNIC, password, role)
+2. Backend creates `PendingUser`, sends OTP to email
+3. User enters 6-digit code (2-min countdown timer)
+4. Resend OTP available if code expires
+5. On verify → `CustomUser` created; business created if owner
 
 ---
 
@@ -143,9 +185,17 @@ ChainProof/
 - [ ] `DEBUG = False` in Django settings
 - [ ] Configure `ALLOWED_HOSTS` & `CORS_ALLOWED_ORIGINS`
 - [ ] Use env vars for `SECRET_KEY` & DB credentials
+- [ ] Create `Backend/.env` from `.env.example` (never commit `.env`)
 - [ ] `python manage.py collectstatic`
 - [ ] `npm run build` (React)
 - [ ] Serve via Nginx or similar
+
+---
+
+## 🔒 Security Notes
+
+- **`.env`** — Contains secrets (Gmail App Password). **Never commit to Git.** Already in `.gitignore`.
+- **`.env.example`** — Safe template with placeholders. Safe to commit.
 
 ---
 

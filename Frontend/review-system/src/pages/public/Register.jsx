@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaUser, FaBuilding, FaCamera, FaGoogle, FaFacebook, FaInfoCircle, FaSpinner } from 'react-icons/fa';
-import { apiRegister, createBusiness, apiLogin, saveAuthData } from "../../services/api";
+import { apiRegisterSendOtp, apiRegisterVerifyOtp, apiRegisterResendOtp, apiLogin, saveAuthData } from "../../services/api";
 
 // =================================================================
 // Reusable Child Components
@@ -116,6 +116,11 @@ function Register() {
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: 'error' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // OTP step: 'form' | 'otp'
+  const [step, setStep] = useState('form');
+  const [pendingId, setPendingId] = useState(null);
+  const [countdown, setCountdown] = useState(0);  // seconds remaining
+  const [otpValue, setOtpValue] = useState('');
 
   // --- Utility Functions ---
   const showNotification = (message, type = 'error') => {
@@ -131,6 +136,13 @@ function Register() {
         setErrors(prev => ({...prev, passwordMatch: ""}));
     }
   }, [form.user.password, form.user.confirmPassword]);
+
+  // --- OTP Countdown Timer (2 minutes) ---
+  useEffect(() => {
+    if (step !== 'otp' || countdown <= 0) return;
+    const timer = setInterval(() => setCountdown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearInterval(timer);
+  }, [step, countdown]);
 
   // --- Event Handlers ---
   const handleChange = (section, e) => {
@@ -177,10 +189,9 @@ function Register() {
 
     setIsSubmitting(true);
     try {
-      // Map 'business' role to 'owner' for the backend
       const backendRole = form.user.role === 'business' ? 'owner' : form.user.role;
 
-      const userPayload = {
+      const payload = {
         full_name: form.user.fullName,
         email: form.user.email,
         password: form.user.password,
@@ -188,14 +199,8 @@ function Register() {
         role: backendRole,
       };
 
-      await apiRegister(userPayload);
-
-      // If owner, log in to get JWT then create the business
       if (backendRole === 'owner' && form.business.name) {
-        const loginData = await apiLogin(form.user.email, form.user.password);
-        saveAuthData(loginData);
-
-        await createBusiness({
+        payload.business_data = {
           name: form.business.name,
           description: form.business.description,
           category: form.business.category,
@@ -203,8 +208,42 @@ function Register() {
           phone_number: form.business.phoneNumber,
           website_url: form.business.websiteUrl,
           establishment_year: form.business.establishmentYear || null,
-        });
+        };
+      }
 
+      const res = await apiRegisterSendOtp(payload);
+      setPendingId(res.pending_id);
+      setCountdown(res.expires_in_seconds || 120);
+      setStep('otp');
+      showNotification(`OTP sent to ${form.user.email}. Check your inbox.`, 'success');
+    } catch (err) {
+      const msg = err.data ? (typeof err.data.detail === 'string' ? err.data.detail : Object.values(err.data).flat().join(' ')) : err.message;
+      showNotification(msg || 'Failed to send OTP. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    if (!otpValue || otpValue.length !== 6) {
+      showNotification('Please enter the 6-digit OTP.');
+      return;
+    }
+    if (countdown <= 0) {
+      showNotification('OTP expired. Please submit the form again to request a new code.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const backendRole = form.user.role === 'business' ? 'owner' : form.user.role;
+
+      await apiRegisterVerifyOtp(pendingId, otpValue);
+
+      if (backendRole === 'owner' && form.business.name) {
+        const loginData = await apiLogin(form.user.email, form.user.password);
+        saveAuthData(loginData);
         showNotification("Account & Business created! Redirecting...", 'success');
         setTimeout(() => navigate('/business/dashboard'), 2000);
       } else {
@@ -212,8 +251,24 @@ function Register() {
         setTimeout(() => navigate('/login'), 2000);
       }
     } catch (err) {
-      const msg = err.data ? Object.values(err.data).flat().join(' ') : err.message;
-      showNotification(msg || 'Registration failed. Please try again.');
+      const msg = err.data ? (typeof err.data.detail === 'string' ? err.data.detail : Object.values(err.data).flat().join(' ')) : err.message;
+      showNotification(msg || 'Invalid OTP. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    if (!pendingId) return;
+    setIsSubmitting(true);
+    try {
+      const res = await apiRegisterResendOtp(pendingId);
+      setCountdown(res.expires_in_seconds || 120);
+      setOtpValue('');
+      showNotification('New OTP sent! Check your inbox.', 'success');
+    } catch (err) {
+      const msg = err.data ? (typeof err.data.detail === 'string' ? err.data.detail : Object.values(err.data).flat().join(' ')) : err.message;
+      showNotification(msg || 'Failed to resend OTP.');
     } finally {
       setIsSubmitting(false);
     }
@@ -255,9 +310,63 @@ function Register() {
         <div style={styles.formWrapper}>
             {/* Left Side: Form */}
             <div style={styles.formColumn}>
-                <h2 style={styles.title}>Create Your Account</h2>
-                <p style={styles.subtitle}>Join a community built on trust and transparency.</p>
+                <h2 style={styles.title}>{step === 'otp' ? 'Verify Your Email' : 'Create Your Account'}</h2>
+                <p style={styles.subtitle}>
+                  {step === 'otp'
+                    ? `Enter the 6-digit code sent to ${form.user.email}`
+                    : 'Join a community built on trust and transparency.'}
+                </p>
                 
+                {step === 'otp' ? (
+                  <form onSubmit={handleVerifyOtp} noValidate>
+                    <div style={styles.otpSection}>
+                      <label style={styles.label}>Verification Code</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={6}
+                        placeholder="000000"
+                        value={otpValue}
+                        onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
+                        style={{ ...styles.input, ...styles.otpInput }}
+                        className="input-focus"
+                        autoFocus
+                      />
+                      <div style={styles.countdown}>
+                        {countdown > 0 ? (
+                          <span>Code expires in <strong>{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</strong></span>
+                        ) : (
+                          <span style={{ color: '#ef4444' }}>Code expired. Click &quot;Resend OTP&quot; below to get a new code.</span>
+                        )}
+                      </div>
+                      <button
+                        type="submit"
+                        style={(otpValue.length !== 6 || countdown <= 0 || isSubmitting) ? {...styles.submitButton, ...styles.submitButtonDisabled} : styles.submitButton}
+                        className="submit-button-hover"
+                        disabled={otpValue.length !== 6 || countdown <= 0 || isSubmitting}
+                      >
+                        {isSubmitting ? <FaSpinner style={{animation: 'spin 1s linear infinite'}}/> : 'Verify & Create Account'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleResendOtp}
+                        disabled={isSubmitting}
+                        style={styles.resendButton}
+                      >
+                        {isSubmitting ? <FaSpinner style={{animation: 'spin 1s linear infinite', marginRight: '0.5rem'}}/> : null}
+                        Resend OTP
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setStep('form'); setOtpValue(''); setPendingId(null); }}
+                        style={styles.backLink}
+                      >
+                        ← Back to form
+                      </button>
+                    </div>
+                  </form>
+                ) : (
                 <form onSubmit={handleSubmit} noValidate>
                     <div style={styles.avatarUploader}>
                         <label htmlFor="profile-picture" style={styles.avatar} className="avatar-hover">
@@ -277,7 +386,11 @@ function Register() {
 
                     <div style={styles.inputGrid}>
                         <div style={styles.inputGroup}><label style={styles.label}>Full Name</label><input name="fullName" placeholder="Ahmed Ali" value={form.user.fullName} onChange={(e) => handleChange('user', e)} style={styles.input} className="input-focus" required /></div>
-                        <div style={styles.inputGroup}><label style={styles.label}>Email</label><input name="email" type="email" placeholder="you@example.com" value={form.user.email} onChange={(e) => handleChange('user', e)} style={styles.input} className="input-focus" required /></div>
+                        <div style={styles.inputGroup}>
+                            <label style={styles.label}>Email</label>
+                            <input name="email" type="email" placeholder="you@example.com" value={form.user.email} onChange={(e) => handleChange('user', e)} style={styles.input} className="input-focus" required />
+                            <p style={styles.emailHint}>We&apos;ll send your OTP verification code to this address</p>
+                        </div>
                     </div>
                     
                     <div style={styles.inputGroup}>
@@ -332,6 +445,7 @@ function Register() {
                         <button type="button" onClick={() => handleSocialLogin('Facebook')} style={styles.socialButton}><FaFacebook/> Sign up with Facebook</button>
                     </div>
                 </form>
+                )}
 
                 <p style={styles.footerText}>
                     Already have an account?{" "}
@@ -475,8 +589,8 @@ const styles = {
     roleButton: {
         flex: 1,
         padding: '0.75rem',
-        background: 'none',
-        border: 'none',
+        backgroundColor: 'var(--hero-bg)',
+        border: '1px solid var(--card-border)',
         borderRadius: '6px',
         color: 'var(--text-color)',
         cursor: 'pointer',
@@ -490,6 +604,7 @@ const styles = {
         backgroundColor: 'var(--card-bg)',
         color: 'var(--button-bg)',
         boxShadow: 'var(--shadow)',
+        borderColor: 'var(--button-bg)',
     },
     inputGrid: {
         display: 'grid',
@@ -550,6 +665,51 @@ const styles = {
         color: "#ef4444", 
         fontSize: "0.8rem", 
         marginTop: "0.25rem",
+    },
+    emailHint: {
+        fontSize: "0.8rem",
+        color: "var(--text-color)",
+        opacity: 0.8,
+        marginTop: "0.35rem",
+    },
+    otpSection: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+    },
+    otpInput: {
+        fontSize: '1.5rem',
+        letterSpacing: '0.5rem',
+        textAlign: 'center',
+    },
+    countdown: {
+        fontSize: '0.9rem',
+        color: 'var(--text-color)',
+        opacity: 0.9,
+    },
+    resendButton: {
+        width: '100%',
+        padding: '0.75rem',
+        background: 'var(--hero-bg)',
+        border: '1px solid var(--card-border)',
+        borderRadius: '8px',
+        color: 'var(--button-bg)',
+        cursor: 'pointer',
+        fontSize: '0.95rem',
+        fontWeight: '600',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+    },
+    backLink: {
+        background: 'none',
+        border: 'none',
+        color: 'var(--button-bg)',
+        cursor: 'pointer',
+        fontSize: '0.9rem',
+        padding: '0.5rem 0',
+        textAlign: 'left',
     },
     businessSection: {
         borderTop: "1px solid var(--card-border)",
