@@ -65,7 +65,7 @@ function PrivacyPolicy() {
     {
       title: '6. Your Rights & Choices',
       content: (
-        <p>You have the right to access, update, or delete the information we have on you. You can also opt-out of receiving marketing communications from us. To exercise these rights, please contact us at <a href="fa22-bse-014@cuiatk.edu.pk" style={styles.link}>anas@cuiatk.com</a>.</p>
+        <p>You have the right to access, update, or delete the information we have on you. You can also opt-out of receiving marketing communications from us. To exercise these rights, please contact us at <a href="mailto:chainproof.verify@gmail.com" style={styles.link}>chainproof.verify@gmail.com</a>.</p>
       ),
       open: false,
     },

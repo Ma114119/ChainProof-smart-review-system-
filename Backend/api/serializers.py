@@ -75,7 +75,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'display_name', 'role', 'is_active', 'status',
             'date_joined', 'wallet_address', 'cnic', 'profile_picture_url'
         ]
-        read_only_fields = ['id', 'username', 'email', 'date_joined', 'display_name', 'status', 'profile_picture_url']
+        read_only_fields = ['id', 'username', 'email', 'date_joined', 'display_name', 'status', 'profile_picture_url', 'role']
 
     def get_display_name(self, obj):
         return f"{obj.first_name} {obj.last_name}".strip() or obj.username

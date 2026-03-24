@@ -61,6 +61,9 @@ Backend/.env
 Frontend/review-system/.env
 *.local
 
+# Project docs (keep local; not pushed to remote per team preference)
+Documentation/
+
 # Misc
 *.bak
 *.tmp

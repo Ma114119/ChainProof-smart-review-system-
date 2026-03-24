@@ -187,7 +187,7 @@ function AdminUserManagement() {
                             <input type="text" placeholder="Search by name or email..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} style={styles.searchInput}/>
                         </div>
                         <div style={styles.filterControls}>
-                            <select value={filters.role} onChange={e => setFilters({...filters, role: e.target.value})} style={styles.select}><option value="all">All Roles</option><option value="customer">Customer</option><option value="owner">Owner</option></select>
+                            <select value={filters.role} onChange={e => setFilters({...filters, role: e.target.value})} style={styles.select}><option value="all">All Roles</option><option value="customer">Customer</option><option value="owner">Owner</option><option value="admin">Admin</option></select>
                             <select value={filters.status} onChange={e => setFilters({...filters, status: e.target.value})} style={styles.select}><option value="all">All Statuses</option><option value="Active">Active</option><option value="Suspended">Suspended</option><option value="Pending">Pending</option></select>
                         </div>
                     </div>

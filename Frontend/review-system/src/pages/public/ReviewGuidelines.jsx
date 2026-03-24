@@ -111,16 +111,20 @@ function ReviewGuidelines() {
         </section>
 
         {/* 5. Additional Information */}
-        <section style={{...styles.section, backgroundColor: "var(--hero-bg)"}}>
+        <section style={{ ...styles.section, ...styles.lastSection, backgroundColor: 'var(--hero-bg)' }}>
             <h2 style={styles.sectionTitle}>Important Information</h2>
             <div style={styles.infoGrid}>
                 <div style={styles.infoCard}>
-                    <h3 style={styles.cardTitle}>Content Moderation</h3>
-                    <p>All reviews are analyzed by our AI to ensure they meet our guidelines before being published. Reviews that violate our policies may be flagged for revision or rejected.</p>
+                    <h3 style={styles.cardTitle}>Content moderation</h3>
+                    <p>
+                      Every submission passes through our AI moderation layer for spam, abuse, and policy issues before it can be published or anchored on-chain. That keeps the community readable and safe—without replacing human judgment for edge cases flagged for revision or rejection.
+                    </p>
                 </div>
                 <div style={styles.infoCard}>
-                    <h3 style={styles.cardTitle}>Tips for Business Owners</h3>
-                    <p>We encourage you to respond professionally to all reviews. Use the feedback as an opportunity to improve your business and engage with your customers.</p>
+                    <h3 style={styles.cardTitle}>Tips for business owners</h3>
+                    <p>
+                      Reply promptly and professionally, even to critical reviews: acknowledge specifics, outline what you have changed or will try, and invite follow-up offline when needed. Thoughtful responses signal credibility to future customers—not just to the reviewer.
+                    </p>
                 </div>
             </div>
         </section>
@@ -258,6 +262,10 @@ const styles = {
     borderRadius: '12px',
     border: '1px solid var(--card-border)',
     textAlign: 'left',
+    lineHeight: 1.65,
+  },
+  lastSection: {
+    paddingBottom: 'calc(4rem + 24px)',
   },
 };
 

@@ -254,7 +254,7 @@ function ContactUs() {
                 <div style={styles.infoIconWrapper}><FaEnvelope style={styles.infoIcon} /></div>
                 <div>
                   <h3 style={styles.cardTitle}>Email Us</h3>
-                  <a href="mailto:support@chainproof.com" style={styles.link}>support@chainproof.com</a>
+                  <a href="mailto:chainproof.verify@gmail.com" style={styles.link}>chainproof.verify@gmail.com</a>
                 </div>
               </div>
               <div style={styles.infoBlock}>

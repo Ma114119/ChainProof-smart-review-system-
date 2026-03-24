@@ -66,7 +66,7 @@ function AppRoutes() {
         <MessageNotificationPoller />
         <ScrollToTop />
         <Navbar />
-        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: 0, padding: 0, minHeight: 0 }}>
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column', margin: 0, padding: 0, paddingBottom: '24px', minHeight: 0 }}>
           <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />

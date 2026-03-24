@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaBolt, FaGem, FaShieldAlt, FaPen, FaEthereum, FaAward, FaStore, FaQuoteLeft, FaBuilding } from "react-icons/fa";
+import { FaBolt, FaGem, FaShieldAlt, FaPen, FaEthereum, FaAward, FaQuoteLeft, FaBuilding, FaUsers, FaGraduationCap } from "react-icons/fa";
 import { BiSearch } from "react-icons/bi";
 
 function Home() {
@@ -37,6 +37,14 @@ function Home() {
     }
     .category-card-hover:hover {
         transform: scale(1.05);
+    }
+    .home-community-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .home-community-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+      border-color: rgba(59, 130, 246, 0.45);
     }
   `;
 
@@ -118,13 +126,31 @@ function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section - NEW */}
-      <section style={styles.section}>
-        <h2 style={styles.sectionTitle}>Trusted by Our Community</h2>
-        <div style={styles.testimonialCard}>
-            <FaQuoteLeft style={styles.quoteIcon} />
-            <p style={styles.testimonialText}>"This project is a game-changer. The ability to verify reviews on the blockchain provides a level of trust we've never had before. A crucial step forward for digital accountability."</p>
-            <p style={styles.testimonialAuthor}>— Dr. Yaser Ali Shah, Project Supervisor</p>
+      {/* Trusted voices — supervision, peers, and early users */}
+      <section style={styles.communitySection}>
+        <h2 style={{ ...styles.sectionTitle, marginBottom: '0.75rem' }}>Trusted by Our Community</h2>
+        <p style={styles.communitySubtitle}>
+          From academic supervision to hands-on testing—people who pushed ChainProof to prove trust, not just promise it.
+        </p>
+        <div style={styles.communityPills}>
+          <span style={styles.communityPill}><FaGraduationCap style={styles.pillIcon} /> Supervision &amp; evaluation</span>
+          <span style={styles.communityPill}><FaUsers style={styles.pillIcon} /> Students &amp; peer testers</span>
+          <span style={styles.communityPill}><FaShieldAlt style={styles.pillIcon} /> On-chain accountability</span>
+        </div>
+        <div className="home-community-card" style={styles.testimonialCard}>
+          <FaQuoteLeft style={styles.quoteIcon} />
+          <div style={styles.testimonialInner}>
+            <p style={styles.testimonialText}>
+              &ldquo;This work stands out because it connects the dots: AI for safer language, blockchain for records that cannot be quietly edited, and a product real users can walk through. That combination is exactly the kind of digital accountability we need more of.&rdquo;
+            </p>
+            <div style={styles.testimonialFooter}>
+              <div style={styles.testimonialAvatar}>YS</div>
+              <div style={{ textAlign: 'left' }}>
+                <p style={styles.testimonialAuthor}>Dr. Yaser Ali Shah</p>
+                <p style={styles.testimonialRole}>Project Supervisor</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -302,32 +328,105 @@ const styles = {
     color: 'var(--button-bg)',
     boxShadow: 'var(--shadow)',
   },
-  // Testimonials
+  communitySection: {
+    padding: '4rem 2rem 3rem',
+    textAlign: 'center',
+  },
+  communitySubtitle: {
+    maxWidth: '640px',
+    margin: '0 auto 1.75rem',
+    fontSize: '1.05rem',
+    lineHeight: 1.65,
+    opacity: 0.88,
+    color: 'var(--text-color)',
+  },
+  communityPills: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: '0.65rem',
+    marginBottom: '2rem',
+  },
+  communityPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.4rem',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    letterSpacing: '0.03em',
+    textTransform: 'uppercase',
+    padding: '0.45rem 0.9rem',
+    borderRadius: '999px',
+    backgroundColor: 'rgba(59, 130, 246, 0.12)',
+    border: '1px solid rgba(59, 130, 246, 0.35)',
+    color: 'var(--header-text)',
+  },
+  pillIcon: {
+    fontSize: '0.95rem',
+    opacity: 0.95,
+  },
   testimonialCard: {
     backgroundColor: 'var(--card-bg)',
-    borderRadius: '12px',
-    padding: '2rem',
-    maxWidth: '800px',
+    borderRadius: '16px',
+    padding: '2rem 2rem 1.75rem',
+    maxWidth: '820px',
     margin: '0 auto',
     position: 'relative',
     border: '1px solid var(--card-border)',
+    borderLeft: '4px solid var(--button-bg)',
+    boxShadow: 'var(--shadow)',
+  },
+  testimonialInner: {
+    paddingLeft: '0.5rem',
   },
   quoteIcon: {
     position: 'absolute',
-    top: '1.5rem',
-    left: '1.5rem',
-    fontSize: '2rem',
+    top: '1.25rem',
+    right: '1.5rem',
+    fontSize: '2.75rem',
     color: 'var(--button-bg)',
-    opacity: 0.5,
+    opacity: 0.12,
   },
   testimonialText: {
-    fontSize: '1.2rem',
-    fontStyle: 'italic',
-    lineHeight: 1.7,
-    marginBottom: '1.5rem',
+    fontSize: '1.08rem',
+    fontStyle: 'normal',
+    lineHeight: 1.75,
+    margin: '0 0 1.5rem 0',
+    textAlign: 'left',
+    color: 'var(--text-color)',
+    opacity: 0.92,
+  },
+  testimonialFooter: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '1rem',
+    justifyContent: 'flex-start',
+  },
+  testimonialAvatar: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #22d3ee, #8b5cf6)',
+    color: '#fff',
+    fontWeight: 800,
+    fontSize: '0.85rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   testimonialAuthor: {
-    fontWeight: 'bold',
+    fontWeight: 700,
+    margin: 0,
+    fontSize: '1.05rem',
+    color: 'var(--text-color)',
+  },
+  testimonialRole: {
+    margin: '0.2rem 0 0 0',
+    fontSize: '0.85rem',
+    opacity: 0.7,
+    fontWeight: 500,
+    color: 'var(--text-color)',
   },
   // Categories
   categoryCard: {

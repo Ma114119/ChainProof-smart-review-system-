@@ -49,10 +49,24 @@ const Footer = () => {
     },
     slogan: {
       fontSize: '0.95rem',
-      lineHeight: '1.7',
-      opacity: '0.8',
+      lineHeight: '1.75',
       marginBottom: '1.5rem',
-      maxWidth: '350px',
+      maxWidth: '380px',
+    },
+    sloganLead: {
+      display: 'block',
+      marginBottom: '0.65rem',
+      fontWeight: 600,
+      letterSpacing: '0.02em',
+      background: 'linear-gradient(120deg, #22d3ee 0%, #60a5fa 45%, #a78bfa 100%)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
+    },
+    sloganRest: {
+      display: 'block',
+      opacity: 0.82,
+      color: 'var(--footer-text)',
     },
     socialIcons: {
       display: 'flex',
@@ -132,18 +146,47 @@ const Footer = () => {
   return (
     <footer style={styles.footerMainContainer}>
       <style>{`
+        .footer-social-icon {
+          transition: color 0.25s ease, transform 0.25s ease, background-color 0.25s ease, filter 0.25s ease, box-shadow 0.25s ease;
+        }
         .footer-social-icon:hover {
           opacity: 1;
-          color: var(--button-bg);
-          transform: translateY(-4px) scale(1.1);
-          background-color: rgba(59, 130, 246, 0.1);
-          filter: drop-shadow(0 0 10px var(--button-bg));
+          color: #22d3ee;
+          transform: translateY(-5px) scale(1.12);
+          background-color: rgba(34, 211, 238, 0.12);
+          box-shadow: 0 0 20px rgba(34, 211, 238, 0.25);
+          filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.45));
+        }
+        .footer-link {
+          position: relative;
+          padding-bottom: 2px;
+        }
+        .footer-link::after {
+          content: '';
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          width: 0;
+          height: 2px;
+          border-radius: 2px;
+          background: linear-gradient(90deg, #22d3ee, #8b5cf6);
+          transition: width 0.28s ease;
         }
         .footer-link:hover {
           opacity: 1;
-          color: var(--button-bg);
-          transform: translateX(5px);
-          text-shadow: 0 0 5px rgba(59, 130, 246, 0.3);
+          color: #7dd3fc;
+          transform: translateX(6px);
+          text-shadow: 0 0 12px rgba(34, 211, 238, 0.35);
+        }
+        .footer-link:hover::after {
+          width: 100%;
+        }
+        .footer-contact-link {
+          transition: color 0.2s ease, opacity 0.2s ease;
+        }
+        .footer-contact-link:hover {
+          color: #22d3ee;
+          opacity: 1;
         }
       `}</style>
       <div style={styles.footerContentGrid}>
@@ -154,13 +197,16 @@ const Footer = () => {
             <span style={styles.logoText}>ChainProof</span>
           </div>
           <p style={styles.slogan}>
-            Revolutionizing online reviews with AI and blockchain technology for transparency and trust.
+            <span style={styles.sloganLead}>Trust you can trace—not just read.</span>
+            <span style={styles.sloganRest}>
+              ChainProof pairs on-chain proof with AI moderation so genuine feedback stays visible, fair, and impossible to quietly rewrite. Built for people who are tired of fake stars and deleted complaints.
+            </span>
           </p>
           <div style={styles.socialIcons}>
-            <a href="https://www.facebook.com/in/muhammad-anas-b46894303/" aria-label="Facebook" style={styles.socialIconLink} className="footer-social-icon"><FaFacebook /></a>
-            <a href="https://www.twitter.com/in/muhammad-anas-b46894303/" aria-label="Twitter" style={styles.socialIconLink} className="footer-social-icon"><FaTwitter /></a>
-            <a href="https://www.linkedin.com/in/muhammad-anas-b46894303/" aria-label="LinkedIn" style={styles.socialIconLink} className="footer-social-icon"><FaLinkedin /></a>
-            <a href="https://www.github.com/in/muhammad-anas" aria-label="GitHub" style={styles.socialIconLink} className="footer-social-icon"><FaGithub /></a>
+            <a href="https://www.facebook.com/m.anas.536796?mibextid=ZbWKwL" target="_blank" rel="noopener noreferrer" aria-label="Facebook" style={styles.socialIconLink} className="footer-social-icon"><FaFacebook /></a>
+            <a href="https://x.com/mansi114119" target="_blank" rel="noopener noreferrer" aria-label="Twitter" style={styles.socialIconLink} className="footer-social-icon"><FaTwitter /></a>
+            <a href="https://www.linkedin.com/in/muhammad-anas-b46894303/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" style={styles.socialIconLink} className="footer-social-icon"><FaLinkedin /></a>
+            <a href="https://github.com/Ma114119" target="_blank" rel="noopener noreferrer" aria-label="GitHub" style={styles.socialIconLink} className="footer-social-icon"><FaGithub /></a>
           </div>
         </div>
 
@@ -198,7 +244,7 @@ const Footer = () => {
           </div>
           <div style={styles.contactItem}>
             <FaRegEnvelope style={styles.contactIcon} />
-            <span>m132119@gmail.com</span>
+            <a href="mailto:chainproof.verify@gmail.com" className="footer-contact-link" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.9 }}>chainproof.verify@gmail.com</a>
           </div>
           <div style={styles.contactItem}>
             <MdPhone style={styles.contactIcon} />
