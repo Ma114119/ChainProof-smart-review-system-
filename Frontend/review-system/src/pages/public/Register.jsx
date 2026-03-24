@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaUser, FaBuilding, FaCamera, FaGoogle, FaFacebook, FaInfoCircle, FaSpinner } from 'react-icons/fa';
 import { apiRegisterSendOtp, apiRegisterVerifyOtp, apiRegisterResendOtp, apiLogin, saveAuthData } from "../../services/api";
+import { ChainProofBrandStrip } from "../../components/ChainProofBrandStrip";
 
 // =================================================================
 // Reusable Child Components
@@ -455,6 +456,7 @@ function Register() {
 
             {/* Right: Intro Text */}
             <div style={styles.introColumn}>
+                <ChainProofBrandStrip />
                 <h2 style={styles.introTitle}>{isBusiness ? "Build a Trusted Brand" : "Become a Valued Contributor"}</h2>
                 <p style={styles.introText}>
                     {isBusiness 
@@ -479,7 +481,7 @@ const styles = {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        padding: "2rem"
+        padding: "2.25rem 2rem"
     },
     notification: {
         position: 'fixed',
@@ -519,31 +521,32 @@ const styles = {
     },
     formColumn: { 
         flex: 1.5, 
-        padding: "2.5rem",
+        padding: "2.65rem 2.85rem",
     },
     introColumn: {
         flex: 1,
         backgroundColor: "var(--hero-bg)",
-        padding: "2.5rem",
+        padding: "1.35rem 2.5rem 2.25rem 2.5rem",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         textAlign: "left",
     },
     title: { 
         fontSize: "2rem", 
         fontWeight: "700", 
         color: "var(--header-text)", 
-        marginBottom: "0.5rem" 
+        marginBottom: "0.75rem" 
     },
     subtitle: {
-        marginBottom: '2rem',
-        opacity: 0.8,
+        marginBottom: '2.35rem',
+        opacity: 0.85,
+        lineHeight: 1.55,
     },
     avatarUploader: {
         display: 'flex',
         justifyContent: 'center',
-        marginBottom: '1.5rem',
+        marginBottom: '1.85rem',
     },
     avatar: {
         width: '100px',
@@ -583,7 +586,7 @@ const styles = {
         display: 'flex',
         gap: '1rem',
         backgroundColor: 'var(--hero-bg)',
-        padding: '0.5rem',
+        padding: '0.65rem',
         borderRadius: '8px',
     },
     roleButton: {
@@ -609,14 +612,14 @@ const styles = {
     inputGrid: {
         display: 'grid',
         gridTemplateColumns: '1fr 1fr',
-        gap: '1rem',
+        gap: '1.25rem',
     },
     inputGroup: {
-        marginBottom: '1.2rem',
+        marginBottom: '1.45rem',
     },
     label: {
         display: 'block',
-        marginBottom: '0.5rem',
+        marginBottom: '0.55rem',
         fontWeight: '500',
     },
     input: {
@@ -675,7 +678,7 @@ const styles = {
     otpSection: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '1rem',
+        gap: '1.2rem',
     },
     otpInput: {
         fontSize: '1.5rem',
@@ -713,8 +716,8 @@ const styles = {
     },
     businessSection: {
         borderTop: "1px solid var(--card-border)",
-        paddingTop: "1.5rem",
-        marginTop: "1.5rem"
+        paddingTop: "1.75rem",
+        marginTop: "1.75rem"
     },
     sectionTitle: { 
         fontSize: "1.2rem", 
@@ -726,11 +729,11 @@ const styles = {
         display: 'flex',
         alignItems: 'center',
         fontSize: '0.9rem',
-        marginTop: '1rem',
+        marginTop: '1.35rem',
     },
     submitButton: {
         width: "100%",
-        padding: "0.9rem",
+        padding: "0.95rem",
         fontSize: "1rem",
         fontWeight: "600",
         backgroundColor: "var(--button-bg)",
@@ -738,7 +741,7 @@ const styles = {
         border: "none",
         borderRadius: "8px",
         cursor: "pointer",
-        marginTop: "1rem",
+        marginTop: "1.2rem",
         transition: "all 0.3s ease"
     },
     submitButtonDisabled: {
@@ -747,7 +750,7 @@ const styles = {
         opacity: 0.7,
     },
     divider: {
-        margin: '1.5rem 0',
+        margin: '1.75rem 0',
         textAlign: 'center',
         color: 'var(--card-border)',
         display: 'flex',
@@ -785,12 +788,15 @@ const styles = {
         fontSize: "2rem", 
         fontWeight: "700", 
         color: "var(--hero-text)", 
-        marginBottom: "1rem" 
+        marginTop: "0.35rem",
+        marginBottom: "1.35rem" 
     },
     introText: { 
         fontSize: "1.1rem", 
-        lineHeight: "1.6", 
+        lineHeight: 1.8, 
         opacity: 0.9,
+        marginTop: 0,
+        marginBottom: 0,
     },
 };
 

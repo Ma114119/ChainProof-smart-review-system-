@@ -99,6 +99,7 @@ class BusinessSerializer(serializers.ModelSerializer):
     owner_email = serializers.ReadOnlyField(source='owner.email')
     avg_rating = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
+    rating_breakdown = serializers.SerializerMethodField()
     profile_picture_url = serializers.SerializerMethodField()
     cover_image_url = serializers.SerializerMethodField()
     gallery_image_urls = serializers.SerializerMethodField()
@@ -108,7 +109,7 @@ class BusinessSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'owner', 'owner_id', 'owner_email', 'name', 'description', 'category',
             'address', 'phone_number', 'email', 'website_url', 'establishment_year',
-            'status', 'created_at', 'avg_rating', 'total_reviews',
+            'status', 'created_at', 'avg_rating', 'total_reviews', 'rating_breakdown',
             'profile_picture', 'cover_image',
             'gallery_image_1', 'gallery_image_2', 'gallery_image_3', 'gallery_image_4',
             'profile_picture_url', 'cover_image_url', 'gallery_image_urls',
@@ -130,6 +131,16 @@ class BusinessSerializer(serializers.ModelSerializer):
 
     def get_total_reviews(self, obj):
         return obj.reviews.count()
+
+    def get_rating_breakdown(self, obj):
+        from django.db.models import Count
+        approved = obj.reviews.filter(status='Approved')
+        breakdown = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+        for row in approved.values('rating').annotate(c=Count('id')):
+            r = row['rating']
+            if r in breakdown:
+                breakdown[r] = row['c']
+        return {str(k): v for k, v in breakdown.items()}
 
     def _build_url(self, obj, field_name):
         field = getattr(obj, field_name, None)
@@ -252,7 +263,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'business', 'business_name', 'rating', 'content',
             'status', 'created_at', 'blockchain_hash', 'transaction_id', 'is_rewarded',
-            'user_profile_picture_url',
+            'user_profile_picture_url', 'owner_reply', 'owner_replied_at',
         ]
         extra_kwargs = {
             'business': {'write_only': True, 'required': False}

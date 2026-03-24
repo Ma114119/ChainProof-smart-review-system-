@@ -105,7 +105,11 @@ class Review(models.Model):
     transaction_id = models.CharField(max_length=100, null=True, blank=True)
     # Track if the 1 SRT reward has been successfully sent
     is_rewarded = models.BooleanField(default=False)
-    
+
+    # Business owner's public response (visible on business profile)
+    owner_reply = models.TextField(blank=True, default='')
+    owner_replied_at = models.DateTimeField(null=True, blank=True)
+
     def __str__(self):
         return f'Review by {self.user.username} for {self.business.name}'
 

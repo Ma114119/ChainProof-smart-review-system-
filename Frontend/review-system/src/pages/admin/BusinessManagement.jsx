@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { fetchMyBusinesses, updateBusiness as apiUpdateBusiness, deleteBusiness as apiDeleteBusiness, transferBusinessOwner, fetchAdminUsers } from '../../services/api';
 import { 
     FaBuilding, 
@@ -19,12 +19,48 @@ import {
 
 // --- Reusable Components ---
 
-// Transfer Owner Modal
+const OWNERS_PAGE_SIZE = 10;
+
+// Transfer Owner Modal (search + paginated owner list)
 const TransferOwnerModal = ({ business, owners, onConfirm, onCancel, loading }) => {
     const [selectedOwnerId, setSelectedOwnerId] = useState('');
+    const [ownerSearch, setOwnerSearch] = useState('');
+    const [ownerPage, setOwnerPage] = useState(1);
+
+    const eligible = useMemo(
+        () => owners.filter((o) => o.id !== business?.ownerId),
+        [owners, business?.ownerId]
+    );
+
+    const filtered = useMemo(() => {
+        const q = ownerSearch.trim().toLowerCase();
+        if (!q) return eligible;
+        return eligible.filter((o) =>
+            `${o.username || ''} ${o.email || ''}`.toLowerCase().includes(q)
+        );
+    }, [eligible, ownerSearch]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / OWNERS_PAGE_SIZE));
+    const safePage = Math.min(ownerPage, totalPages);
+    const pageOwners = filtered.slice((safePage - 1) * OWNERS_PAGE_SIZE, safePage * OWNERS_PAGE_SIZE);
+
+    const prevBizId = useRef(business?.id);
+    useEffect(() => {
+        if (business?.id !== prevBizId.current) {
+            prevBizId.current = business?.id;
+            setSelectedOwnerId('');
+            setOwnerSearch('');
+            setOwnerPage(1);
+        }
+    }, [business?.id]);
+
+    useEffect(() => {
+        setOwnerPage(1);
+    }, [ownerSearch]);
+
     return (
         <div style={styles.modalOverlay}>
-            <div style={styles.modal}>
+            <div style={{ ...styles.modal, maxWidth: '480px' }}>
                 <h3 style={styles.modalTitle}>Transfer Business Owner</h3>
                 <p style={{ marginBottom: '0.5rem', opacity: 0.9 }}>
                     Reassign <strong>{business?.name}</strong> to a different owner.
@@ -34,17 +70,61 @@ const TransferOwnerModal = ({ business, owners, onConfirm, onCancel, loading }) 
                 </p>
                 <div style={styles.inputGroup}>
                     <label style={styles.label}>New Owner</label>
-                    <select
-                        value={selectedOwnerId}
-                        onChange={(e) => setSelectedOwnerId(Number(e.target.value))}
-                        style={styles.input}
-                        className="input-focus"
-                    >
-                        <option value="">Select owner...</option>
-                        {owners.filter(o => o.id !== business?.ownerId).map(o => (
-                            <option key={o.id} value={o.id}>{o.username} ({o.email})</option>
-                        ))}
-                    </select>
+                    <div style={styles.transferSearchWrap} className="input-focus">
+                        <FaSearch style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                        <input
+                            type="search"
+                            placeholder="Search by name or email..."
+                            value={ownerSearch}
+                            onChange={(e) => setOwnerSearch(e.target.value)}
+                            style={styles.transferSearchInput}
+                        />
+                    </div>
+                    <div style={styles.ownerListBox}>
+                        {pageOwners.length === 0 ? (
+                            <p style={{ margin: 0, padding: '1rem', opacity: 0.7, fontSize: '0.9rem' }}>
+                                {eligible.length === 0 ? 'No other owners available.' : 'No owners match your search.'}
+                            </p>
+                        ) : (
+                            pageOwners.map((o) => (
+                                <button
+                                    key={o.id}
+                                    type="button"
+                                    onClick={() => setSelectedOwnerId(o.id)}
+                                    style={{
+                                        ...styles.ownerListRow,
+                                        ...(selectedOwnerId === o.id ? styles.ownerListRowActive : {}),
+                                    }}
+                                >
+                                    <span style={{ fontWeight: 600 }}>{o.username}</span>
+                                    <span style={{ opacity: 0.75, fontSize: '0.85rem' }}>{o.email}</span>
+                                </button>
+                            ))
+                        )}
+                    </div>
+                    {filtered.length > OWNERS_PAGE_SIZE && (
+                        <div style={styles.ownerPager}>
+                            <button
+                                type="button"
+                                onClick={() => setOwnerPage((p) => Math.max(1, p - 1))}
+                                disabled={safePage <= 1}
+                                style={styles.ownerPagerBtn}
+                            >
+                                <FaChevronLeft />
+                            </button>
+                            <span style={styles.ownerPagerInfo}>
+                                Page {safePage} of {totalPages}
+                            </span>
+                            <button
+                                type="button"
+                                onClick={() => setOwnerPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={safePage >= totalPages}
+                                style={styles.ownerPagerBtn}
+                            >
+                                <FaChevronRight />
+                            </button>
+                        </div>
+                    )}
                 </div>
                 <div style={styles.modalActions}>
                     <button onClick={onCancel} style={styles.cancelButton}>Cancel</button>
@@ -1403,6 +1483,70 @@ const styles = {
         gap: '1rem', 
         marginTop: '1.5rem' 
     },
+    transferSearchWrap: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.65rem',
+        padding: '0.55rem 0.85rem',
+        borderRadius: '8px',
+        border: '1px solid var(--card-border)',
+        backgroundColor: 'var(--bg-color)',
+        marginBottom: '0.65rem',
+    },
+    transferSearchInput: {
+        flex: 1,
+        border: 'none',
+        background: 'transparent',
+        color: 'var(--text-color)',
+        fontSize: '0.95rem',
+        outline: 'none',
+    },
+    ownerListBox: {
+        maxHeight: '220px',
+        overflowY: 'auto',
+        borderRadius: '8px',
+        border: '1px solid var(--card-border)',
+        backgroundColor: 'var(--bg-color)',
+        textAlign: 'left',
+    },
+    ownerListRow: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: '0.2rem',
+        width: '100%',
+        padding: '0.75rem 1rem',
+        border: 'none',
+        borderBottom: '1px solid var(--card-border)',
+        background: 'transparent',
+        color: 'var(--text-color)',
+        cursor: 'pointer',
+        textAlign: 'left',
+    },
+    ownerListRowActive: {
+        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+        boxShadow: 'inset 3px 0 0 var(--button-bg)',
+    },
+    ownerPager: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1rem',
+        marginTop: '0.75rem',
+    },
+    ownerPagerBtn: {
+        width: '36px',
+        height: '36px',
+        borderRadius: '50%',
+        border: '1px solid var(--card-border)',
+        backgroundColor: 'var(--card-bg)',
+        color: 'var(--text-color)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    ownerPagerInfo: { fontSize: '0.9rem', opacity: 0.85 },
     modalDeleteButton: { 
         padding: '0.8rem 1.5rem', 
         backgroundColor: '#ef4444', 

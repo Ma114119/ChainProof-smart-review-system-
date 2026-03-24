@@ -144,8 +144,24 @@ export const fetchPublicBusinesses = (search = '', category = '') => {
 export const fetchPublicBusiness = (id) =>
   apiFetch(`/api/public/businesses/${id}/`);
 
-export const fetchPublicReviews = (businessId) =>
-  apiFetch(`/api/businesses/${businessId}/reviews/`);
+const reviewsListUrl = (businessId, params = {}) => {
+  const sp = new URLSearchParams();
+  if (params.page) sp.append('page', params.page);
+  if (params.page_size) sp.append('page_size', params.page_size);
+  if (params.search) sp.append('search', params.search);
+  if (params.min_rating != null && params.min_rating !== '' && Number(params.min_rating) > 0) {
+    sp.append('min_rating', params.min_rating);
+  }
+  if (params.ordering) sp.append('ordering', params.ordering);
+  const q = sp.toString();
+  return q ? `/api/businesses/${businessId}/reviews/?${q}` : `/api/businesses/${businessId}/reviews/`;
+};
+
+export const fetchPublicReviews = (businessId, params = {}) =>
+  apiFetch(reviewsListUrl(businessId, params));
+
+export const fetchReviewStats = (businessId) =>
+  apiFetch(`/api/businesses/${businessId}/reviews/stats/`);
 
 // =================================================================
 // BUSINESSES (owner / admin)
@@ -207,8 +223,14 @@ export const updateBusinessWithImages = (id, formData) =>
 // REVIEWS
 // =================================================================
 
-export const fetchReviews = (businessId) =>
-  apiFetch(`/api/businesses/${businessId}/reviews/`);
+export const fetchReviews = (businessId, params = {}) =>
+  apiFetch(reviewsListUrl(businessId, params));
+
+export const patchOwnerReviewReply = (businessId, reviewId, ownerReply) =>
+  apiFetch(`/api/businesses/${businessId}/reviews/${reviewId}/reply/`, {
+    method: 'PATCH',
+    body: JSON.stringify({ owner_reply: ownerReply }),
+  });
 
 export const submitReview = (businessId, data) =>
   apiFetch(`/api/businesses/${businessId}/reviews/`, {
@@ -227,7 +249,7 @@ export const fetchAdminUsers = (search = '', role = '') => {
   if (search) params.append('search', search);
   if (role && role !== 'all') params.append('role', role);
   const query = params.toString();
-  return apiFetch(`/api/admin/users/${query ? `?${query}` : ''}`);
+  return apiFetch(query ? `/api/admin/users/?${query}` : '/api/admin/users/');
 };
 
 export const updateUser = (id, data) =>
@@ -248,7 +270,7 @@ export const fetchAdminReviews = (search = '', status = '') => {
   if (search) params.append('search', search);
   if (status && status !== 'All') params.append('status', status);
   const query = params.toString();
-  return apiFetch(`/api/admin/reviews/${query ? `?${query}` : ''}`);
+  return apiFetch(query ? `/api/admin/reviews/?${query}` : '/api/admin/reviews/');
 };
 
 export const updateReviewStatus = (id, reviewStatus) =>

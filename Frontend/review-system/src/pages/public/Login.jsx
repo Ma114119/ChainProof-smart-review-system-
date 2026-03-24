@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash, FaSpinner } from 'react-icons/fa';
 import { apiLogin, saveAuthData } from "../../services/api";
+import { ChainProofBrandStrip } from "../../components/ChainProofBrandStrip";
 
 // Password Input Component with Visibility Toggle
 const PasswordInput = ({ name, value, onChange, placeholder }) => {
@@ -137,6 +138,7 @@ function Login() {
 
             {/* Right: Intro Text */}
             <div style={styles.introColumn}>
+                <ChainProofBrandStrip variant="markOnly" />
                 <h2 style={styles.introTitle}>Secure & Transparent</h2>
                 <p style={styles.introText}>
                     Access your AI-powered, blockchain-secured review account. Continue contributing to our transparent feedback ecosystem and earn rewards for your valuable insights.
@@ -173,10 +175,10 @@ const styles = {
     introColumn: {
         flex: 1,
         backgroundColor: "var(--hero-bg)",
-        padding: "2.5rem",
+        padding: "1.35rem 2.5rem 2.25rem 2.5rem",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         textAlign: "left",
     },
     title: { 
@@ -276,12 +278,14 @@ const styles = {
         fontSize: "2rem", 
         fontWeight: "700", 
         color: "var(--hero-text)", 
-        marginBottom: "1rem" 
+        marginTop: 0,
+        marginBottom: "1.25rem" 
     },
     introText: { 
         fontSize: "1.1rem", 
-        lineHeight: "1.6", 
+        lineHeight: 1.8, 
         opacity: 0.9,
+        margin: 0,
     },
 };
 

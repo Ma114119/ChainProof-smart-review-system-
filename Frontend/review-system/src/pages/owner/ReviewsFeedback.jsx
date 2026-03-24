@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { fetchMyBusinesses, fetchReviews } from '../../services/api';
+import { fetchMyBusinesses, fetchReviews, fetchReviewStats, patchOwnerReviewReply } from '../../services/api';
 import { 
     FaStar, 
     FaSpinner,
@@ -13,13 +13,18 @@ import {
     FaFlag,
     FaComments,
     FaSmile,
-    FaFrown
+    FaFrown,
+    FaChevronLeft,
+    FaChevronRight
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // Review Detail Modal Component
 const ReviewDetailModal = ({ review, onClose, onReply }) => {
-    const [replyText, setReplyText] = useState(review.reply || '');
+    const [replyText, setReplyText] = useState(review.owner_reply || review.reply || '');
+    useEffect(() => {
+        setReplyText(review.owner_reply || review.reply || '');
+    }, [review.id, review.owner_reply, review.reply]);
     const renderStars = (rating) => Array(5).fill(null).map((_, i) => <FaStar key={i} style={{ color: i < rating ? "#ffc107" : "var(--card-border)" }} />);
 
     return (
@@ -55,95 +60,153 @@ const ReviewDetailModal = ({ review, onClose, onReply }) => {
 function ReviewsFeedback() {
   const { businessId: initialBusinessId } = useParams();
   const [businesses, setBusinesses] = useState([]);
-  const [allReviews, setAllReviews] = useState([]);
-  const [allAiInsights, setAllAiInsights] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [filterRating, setFilterRating] = useState(0);
   const [sortBy, setSortBy] = useState('newest');
   const [selectedReview, setSelectedReview] = useState(null);
   const [selectedBusinessId, setSelectedBusinessId] = useState(null);
+  const [reviewPage, setReviewPage] = useState(1);
+  const [reviewStats, setReviewStats] = useState({
+    total: 0, positive_pct: 0, negative_pct: 0, neutral_pct: 0, avg_rating: 0,
+  });
+  const [paged, setPaged] = useState({ results: [], count: 0 });
+  const [listLoading, setListLoading] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 350);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setReviewPage(1);
+  }, [selectedBusinessId, debouncedSearch, filterRating, sortBy]);
+
+  const mapReview = (r, businessId) => ({
+    id: r.id,
+    businessId,
+    user: r.user,
+    rating: r.rating,
+    comment: r.content,
+    date: r.created_at,
+    likes: 0,
+    liked: false,
+    owner_reply: r.owner_reply || '',
+    reply: r.owner_reply || '',
+    blockchain_hash: r.blockchain_hash,
+    status: r.status,
+    ai: { qualityScore: r.status === 'Flagged' ? 35 : 90, issues: r.status === 'Flagged' ? ['AI-flagged spam'] : [] },
+  });
+
+  const normalizeListResponse = (data, businessId) => {
+    if (data && Array.isArray(data.results) && typeof data.count === 'number') {
+      return { results: data.results.map((row) => mapReview(row, businessId)), count: data.count };
+    }
+    const arr = Array.isArray(data) ? data : [];
+    return { results: arr.map((row) => mapReview(row, businessId)), count: arr.length };
+  };
+
+  const fetchBizList = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const bizList = await fetchMyBusinesses();
-      const normalizedBizList = bizList.map(b => ({ id: b.id, name: b.name }));
+      const normalizedBizList = bizList.map((b) => ({ id: b.id, name: b.name }));
       setBusinesses(normalizedBizList);
-
-      const firstId = initialBusinessId ? parseInt(initialBusinessId) : (normalizedBizList.length > 0 ? normalizedBizList[0].id : null);
+      const firstId = initialBusinessId
+        ? parseInt(initialBusinessId, 10)
+        : (normalizedBizList.length > 0 ? normalizedBizList[0].id : null);
       setSelectedBusinessId(firstId);
-
-      // Fetch reviews for all businesses
-      const reviewPromises = normalizedBizList.map(b =>
-        fetchReviews(b.id).then(reviews => reviews.map(r => ({
-          id: r.id,
-          businessId: b.id,
-          user: r.user,
-          rating: r.rating,
-          comment: r.content,
-          date: r.created_at,
-          likes: 0,
-          liked: false,
-          reply: null,
-          blockchain_hash: r.blockchain_hash,
-          ai: { qualityScore: r.status === 'Flagged' ? 35 : 90, issues: r.status === 'Flagged' ? ['AI-flagged spam'] : [] },
-        })))
-      );
-      const reviewArrays = await Promise.all(reviewPromises);
-      const allReviewsFlat = reviewArrays.flat();
-      setAllReviews(allReviewsFlat);
-
-      // Compute AI sentiment per business from real data
-      const insights = {};
-      normalizedBizList.forEach(b => {
-        const bReviews = allReviewsFlat.filter(r => r.businessId === b.id);
-        const total = bReviews.length || 1;
-        const positive = Math.round((bReviews.filter(r => r.rating >= 4).length / total) * 100);
-        const negative = Math.round((bReviews.filter(r => r.rating <= 2).length / total) * 100);
-        insights[b.id] = { sentiment: { positive, negative, neutral: 100 - positive - negative } };
-      });
-      setAllAiInsights(insights);
     } catch (err) {
-      setError("Failed to load review data. Please try again.");
+      setError('Failed to load review data. Please try again.');
     } finally {
       setLoading(false);
     }
   }, [initialBusinessId]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchBizList();
+  }, [fetchBizList]);
 
-  const handleReplySubmit = (reviewId, replyText) => {
-    setAllReviews(allReviews.map(r => r.id === reviewId ? {...r, reply: replyText} : r));
-    setSelectedReview(null);
+  const loadStats = useCallback(async (bid) => {
+    if (!bid) return;
+    try {
+      const s = await fetchReviewStats(bid);
+      setReviewStats(s);
+    } catch {
+      setReviewStats({ total: 0, positive_pct: 0, negative_pct: 0, neutral_pct: 0, avg_rating: 0 });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedBusinessId) loadStats(selectedBusinessId);
+  }, [selectedBusinessId, loadStats]);
+
+  const orderingForSort = (sb) => {
+    if (sb === 'oldest') return 'created_at';
+    if (sb === 'highest') return '-rating';
+    if (sb === 'lowest') return 'rating';
+    return '-created_at';
+  };
+
+  const loadReviews = useCallback(async () => {
+    if (!selectedBusinessId) {
+      setPaged({ results: [], count: 0 });
+      return;
+    }
+    setListLoading(true);
+    try {
+      const minR = filterRating >= 5 ? 5 : filterRating >= 4 ? 4 : filterRating > 0 ? filterRating : undefined;
+      const data = await fetchReviews(selectedBusinessId, {
+        page: reviewPage,
+        page_size: 10,
+        search: debouncedSearch.trim() || undefined,
+        min_rating: minR,
+        ordering: orderingForSort(sortBy),
+      });
+      setPaged(normalizeListResponse(data, selectedBusinessId));
+    } catch {
+      setPaged({ results: [], count: 0 });
+    } finally {
+      setListLoading(false);
+    }
+  }, [selectedBusinessId, reviewPage, debouncedSearch, filterRating, sortBy]);
+
+  useEffect(() => {
+    loadReviews();
+  }, [loadReviews]);
+
+  const handleReplySubmit = async (reviewId, replyText) => {
+    if (!selectedBusinessId) return;
+    try {
+      await patchOwnerReviewReply(selectedBusinessId, reviewId, replyText);
+      setPaged((prev) => ({
+        ...prev,
+        results: prev.results.map((r) =>
+          r.id === reviewId ? { ...r, owner_reply: replyText, reply: replyText } : r
+        ),
+      }));
+      setSelectedReview(null);
+      loadStats(selectedBusinessId);
+    } catch (e) {
+      alert(e.message || 'Failed to save reply');
+    }
   };
 
   const handleLike = (e, reviewId) => {
     e.stopPropagation();
-    setAllReviews(allReviews.map(r => {
+    setPaged((prev) => ({
+      ...prev,
+      results: prev.results.map((r) => {
         if (r.id === reviewId) {
-            return {...r, likes: r.liked ? r.likes - 1 : r.likes + 1, liked: !r.liked };
+          return { ...r, likes: r.liked ? r.likes - 1 : r.likes + 1, liked: !r.liked };
         }
         return r;
+      }),
     }));
   };
-
-  const filteredReviews = useMemo(() => {
-    let result = allReviews
-      .filter(r => r.businessId === selectedBusinessId)
-      .filter(r => r.rating >= filterRating)
-      .filter(r => r.comment.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    if (sortBy === 'newest') result.sort((a, b) => new Date(b.date) - new Date(a.date));
-    else if (sortBy === 'oldest') result.sort((a, b) => new Date(a.date) - new Date(b.date));
-    else if (sortBy === 'highest') result.sort((a, b) => b.rating - a.rating);
-    else if (sortBy === 'lowest') result.sort((a, b) => a.rating - b.rating);
-    return result;
-  }, [allReviews, searchTerm, filterRating, sortBy, selectedBusinessId]);
 
   const renderStars = (rating) => {
     return Array(5).fill(null).map((_, i) => <FaStar key={i} style={{ color: i < rating ? "#ffc107" : "var(--card-border)" }} />);
@@ -166,20 +229,20 @@ function ReviewsFeedback() {
         <div style={styles.errorContainer}>
             <FaExclamationTriangle style={styles.errorIcon} />
             <p>{error}</p>
-            <button onClick={fetchData} style={styles.retryButton}>Retry</button>
+            <button type="button" onClick={() => fetchBizList()} style={styles.retryButton}>Retry</button>
         </div>
     );
   }
   
-  const currentSentiment = allAiInsights[selectedBusinessId] || { sentiment: { positive: 0, neutral: 0, negative: 0 } };
   const sentimentData = [
-      { name: 'Positive', value: currentSentiment.sentiment.positive, fill: '#10B981' },
-      { name: 'Negative', value: currentSentiment.sentiment.negative, fill: '#EF4444' },
-      { name: 'Neutral', value: currentSentiment.sentiment.neutral, fill: '#6B7280' },
+    { name: 'Positive', value: reviewStats.positive_pct, fill: '#10B981' },
+    { name: 'Negative', value: reviewStats.negative_pct, fill: '#EF4444' },
+    { name: 'Neutral', value: reviewStats.neutral_pct, fill: '#6B7280' },
   ];
 
-  const selectedBusinessName = businesses.find(b => b.id === selectedBusinessId)?.name;
-  const avgRating = filteredReviews.length > 0 ? (filteredReviews.reduce((acc, r) => acc + r.rating, 0) / filteredReviews.length).toFixed(1) : 'N/A';
+  const selectedBusinessName = businesses.find((b) => b.id === selectedBusinessId)?.name;
+  const avgRating = reviewStats.avg_rating != null ? Number(reviewStats.avg_rating).toFixed(1) : 'N/A';
+  const totalPages = Math.max(1, Math.ceil((paged.count || 0) / 10));
 
   return (
     <div style={{ backgroundColor: "var(--bg-color)", color: "var(--text-color)", minHeight: "100vh" }}>
@@ -199,7 +262,7 @@ function ReviewsFeedback() {
         <div style={styles.statsGrid}>
             <div style={styles.statCard}>
                 <h3 style={styles.statTitle}><FaComments style={{color: 'var(--button-bg)'}}/> Total Reviews</h3>
-                <p style={styles.statValue}>{filteredReviews.length}</p>
+                <p style={styles.statValue}>{reviewStats.total}</p>
             </div>
             <div style={styles.statCard}>
                 <h3 style={styles.statTitle}><FaStar style={{color: '#ffc107'}}/> Average Rating</h3>
@@ -207,11 +270,11 @@ function ReviewsFeedback() {
             </div>
             <div style={styles.statCard}>
                 <h3 style={styles.statTitle}><FaSmile style={{color: '#10B981'}}/> Positive Sentiment</h3>
-                <p style={styles.statValue}>{currentSentiment.sentiment.positive}%</p>
+                <p style={styles.statValue}>{reviewStats.positive_pct}%</p>
             </div>
             <div style={styles.statCard}>
                 <h3 style={styles.statTitle}><FaFrown style={{color: '#EF4444'}}/> Negative Sentiment</h3>
-                <p style={styles.statValue}>{currentSentiment.sentiment.negative}%</p>
+                <p style={styles.statValue}>{reviewStats.negative_pct}%</p>
             </div>
         </div>
 
@@ -220,7 +283,7 @@ function ReviewsFeedback() {
             <aside style={styles.sidebar}>
                 <div style={styles.sidebarCard}>
                     <h2 style={styles.sectionTitle}><FaChartPie/> AI Sentiment Analysis</h2>
-                    <p style={styles.reviewCount}>{filteredReviews.length} Total Reviews for {selectedBusinessName}</p>
+                    <p style={styles.reviewCount}>{reviewStats.total} Total Reviews for {selectedBusinessName}</p>
                     <ResponsiveContainer width="100%" height={200}>
                         <PieChart>
                             <Pie data={sentimentData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label>
@@ -249,11 +312,16 @@ function ReviewsFeedback() {
                         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={styles.select}>
                             <option value="newest">Sort by Newest</option>
                             <option value="oldest">Sort by Oldest</option>
+                            <option value="highest">Highest Rated</option>
+                            <option value="lowest">Lowest Rated</option>
                         </select>
                     </div>
                 </div>
 
-                {filteredReviews.map(review => (
+                {listLoading ? (
+                    <div style={styles.listLoading}><FaSpinner className="spin" /> Loading reviews…</div>
+                ) : (
+                  paged.results.map((review) => (
                     <div key={review.id} style={styles.reviewCard}>
                         <div style={styles.reviewContent} onClick={() => setSelectedReview(review)}>
                             <div style={styles.reviewHeader}>
@@ -262,22 +330,33 @@ function ReviewsFeedback() {
                             </div>
                             <p style={styles.reviewDate}>{new Date(review.date).toLocaleDateString()}</p>
                             <p style={styles.reviewComment}>{review.comment}</p>
-                            {review.reply && (
+                            {(review.reply || review.owner_reply) && (
                                 <div style={styles.ownerReply}>
                                     <strong>Your Reply:</strong>
-                                    <p>{review.reply}</p>
+                                    <p>{review.reply || review.owner_reply}</p>
                                 </div>
                             )}
                         </div>
                         <div style={styles.reviewActions}>
-                            <button onClick={(e) => handleLike(e, review.id)} style={review.liked ? {...styles.likeButton, ...styles.likeButtonActive} : styles.likeButton}>
+                            <button type="button" onClick={(e) => handleLike(e, review.id)} style={review.liked ? {...styles.likeButton, ...styles.likeButtonActive} : styles.likeButton}>
                                 <FaThumbsUp/> {review.likes}
                             </button>
-                            <button onClick={() => setSelectedReview(review)} style={styles.actionButton} className="action-button-hover"><FaReply/> Respond</button>
-                            {review.ai.issues.includes("AI-flagged spam") && <span style={styles.flaggedBadge}><FaFlag/> AI Flagged</span>}
+                            <button type="button" onClick={() => setSelectedReview(review)} style={styles.actionButton} className="action-button-hover"><FaReply/> Respond</button>
+                            {review.ai.issues.includes('AI-flagged spam') && <span style={styles.flaggedBadge}><FaFlag/> AI Flagged</span>}
                         </div>
                     </div>
-                ))}
+                  ))
+                )}
+                {!listLoading && paged.count === 0 && (
+                    <p style={styles.emptyList}>No reviews match your filters.</p>
+                )}
+                {!listLoading && totalPages > 1 && (
+                    <div style={styles.paginationBar}>
+                        <button type="button" disabled={reviewPage <= 1} onClick={() => setReviewPage((p) => Math.max(1, p - 1))} style={styles.pageBtn}><FaChevronLeft /></button>
+                        <span style={styles.pageInfo}>Page {reviewPage} of {totalPages}</span>
+                        <button type="button" disabled={reviewPage >= totalPages} onClick={() => setReviewPage((p) => Math.min(totalPages, p + 1))} style={styles.pageBtn}><FaChevronRight /></button>
+                    </div>
+                )}
             </div>
         </div>
       </main>
@@ -602,7 +681,38 @@ const styles = {
     loader: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', gap: '1rem' },
     errorContainer: { display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', gap: '1rem' },
     errorIcon: { fontSize: '3rem', color: '#ef4444' },
-    retryButton: { padding: '0.8rem 1.5rem', backgroundColor: "var(--button-bg)", color: "white", border: 'none', borderRadius: '8px', cursor: 'pointer' }
+    retryButton: { padding: '0.8rem 1.5rem', backgroundColor: "var(--button-bg)", color: "white", border: 'none', borderRadius: '8px', cursor: 'pointer' },
+    listLoading: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        padding: '2rem',
+        justifyContent: 'center',
+        color: 'var(--text-color)',
+        opacity: 0.85,
+    },
+    emptyList: { textAlign: 'center', opacity: 0.75, padding: '2rem' },
+    paginationBar: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '1.25rem',
+        marginTop: '1rem',
+        padding: '1rem',
+    },
+    pageBtn: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '40px',
+        height: '40px',
+        borderRadius: '8px',
+        border: '1px solid var(--card-border)',
+        backgroundColor: 'var(--card-bg)',
+        color: 'var(--text-color)',
+        cursor: 'pointer',
+    },
+    pageInfo: { fontWeight: 600, opacity: 0.9 },
 };
 
 export default ReviewsFeedback;

@@ -5,8 +5,10 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework_simplejwt.views import TokenObtainPairView
-from django.db.models import Q
+from django.db.models import Q, Avg
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from rest_framework.pagination import PageNumberPagination
 from .serializers import (
     UserSerializer, UserDetailSerializer, ProfileSerializer,
     BusinessSerializer, ReviewSerializer,
@@ -810,7 +812,7 @@ def get_my_support_messages(request):
     if user.role not in ('customer', 'owner'):
         raise PermissionDenied("Customers and owners only.")
     thread, _ = SupportThread.objects.get_or_create(user=user)
-    messages = thread.messages.all().order_by('created_at')
+    messages = thread.messages.all().order_by('-created_at')
     # Mark messages not from user (i.e. from admin) as read when user fetches
     for m in messages.exclude(sender=user).filter(is_read=False):
         m.is_read = True
@@ -847,6 +849,7 @@ def send_support_message(request):
     if attachment:
         msg.attachment = attachment
         msg.save(update_fields=['attachment'])
+    thread.save()
     return Response({'detail': 'Message sent.'})
 
 
@@ -903,7 +906,7 @@ def admin_get_thread_messages(request, thread_id):
     for m in thread.messages.filter(sender=thread.user, is_read=False):
         m.is_read = True
         m.save(update_fields=['is_read'])
-    messages = thread.messages.all().order_by('created_at')
+    messages = thread.messages.all().order_by('-created_at')
     data = {
         'thread': {'id': thread.id, 'user': thread.user.username, 'email': thread.user.email, 'role': thread.user.role},
         'messages': [{
@@ -934,6 +937,7 @@ def admin_reply_support(request, thread_id):
     if not message:
         return Response({'detail': 'Message is required.'}, status=status.HTTP_400_BAD_REQUEST)
     SupportMessage.objects.create(thread=thread, sender=request.user, message=message)
+    thread.save()
     return Response({'detail': 'Reply sent.'})
 
 
@@ -1014,13 +1018,42 @@ class BusinessDetailView(generics.RetrieveUpdateDestroyAPIView):
 # ================================================================
 # REVIEW VIEWS
 # ================================================================
+class ReviewPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 50
+
+
 class ReviewView(generics.ListCreateAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+    pagination_class = ReviewPagination
 
     def get_queryset(self):
         business_id = self.kwargs['business_id']
-        return Review.objects.filter(business_id=business_id).order_by('-created_at')
+        qs = Review.objects.filter(business_id=business_id)
+        user = self.request.user
+        owner_or_admin = False
+        if user.is_authenticated:
+            if is_admin(user):
+                owner_or_admin = True
+            else:
+                owner_or_admin = Business.objects.filter(pk=business_id, owner=user).exists()
+        if not owner_or_admin:
+            qs = qs.filter(status='Approved')
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(Q(content__icontains=search) | Q(user__username__icontains=search))
+        min_rating = self.request.query_params.get('min_rating')
+        if min_rating is not None and str(min_rating).isdigit():
+            qs = qs.filter(rating__gte=int(min_rating))
+        ordering = self.request.query_params.get('ordering', '-created_at')
+        allowed = {'created_at', '-created_at', 'rating', '-rating'}
+        if ordering in allowed:
+            qs = qs.order_by(ordering)
+        else:
+            qs = qs.order_by('-created_at')
+        return qs
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
@@ -1051,6 +1084,58 @@ class ReviewView(generics.ListCreateAPIView):
             review.is_rewarded = True
 
         review.save()
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def business_review_stats(request, business_id):
+    """Aggregates for charts / KPIs (all matching reviews, not paginated)."""
+    qs = Review.objects.filter(business_id=business_id)
+    user = request.user
+    owner_or_admin = False
+    if user.is_authenticated:
+        if is_admin(user):
+            owner_or_admin = True
+        else:
+            owner_or_admin = Business.objects.filter(pk=business_id, owner=user).exists()
+    if not owner_or_admin:
+        qs = qs.filter(status='Approved')
+    total = qs.count()
+    if total == 0:
+        return Response({
+            'total': 0,
+            'positive_pct': 0,
+            'negative_pct': 0,
+            'neutral_pct': 0,
+            'avg_rating': 0,
+        })
+    positive = qs.filter(rating__gte=4).count()
+    negative = qs.filter(rating__lte=2).count()
+    neutral = max(0, total - positive - negative)
+    avg = qs.aggregate(v=Avg('rating'))['v'] or 0
+    return Response({
+        'total': total,
+        'positive_pct': round(100 * positive / total),
+        'negative_pct': round(100 * negative / total),
+        'neutral_pct': round(100 * neutral / total),
+        'avg_rating': round(float(avg), 1),
+    })
+
+
+@api_view(['PATCH'])
+@permission_classes([permissions.IsAuthenticated])
+def owner_reply_to_review(request, business_id, review_id):
+    review = get_object_or_404(Review, pk=review_id, business_id=business_id)
+    business = review.business
+    if business.owner_id != request.user.id and not is_admin(request.user):
+        raise PermissionDenied('Only the business owner can reply to reviews.')
+    text = (request.data.get('owner_reply') or '').strip()
+    if len(text) > 8000:
+        return Response({'detail': 'Reply is too long (max 8000 characters).'}, status=status.HTTP_400_BAD_REQUEST)
+    review.owner_reply = text
+    review.owner_replied_at = timezone.now() if text else None
+    review.save(update_fields=['owner_reply', 'owner_replied_at'])
+    return Response(ReviewSerializer(review, context={'request': request}).data)
 
 
 @api_view(['GET'])

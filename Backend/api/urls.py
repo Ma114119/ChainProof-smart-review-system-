@@ -3,7 +3,7 @@ from .views import (
     RegisterView, LoginView, ProfileView,
     register_send_otp, register_verify_otp, register_resend_otp,
     BusinessView, BusinessDetailView,
-    ReviewView, my_reviews,
+    ReviewView, my_reviews, business_review_stats, owner_reply_to_review,
     PublicBusinessListView, PublicBusinessDetailView,
     AdminUserListView, AdminUserDetailView,
     AdminReviewListView, AdminReviewDetailView,
@@ -41,6 +41,8 @@ urlpatterns = [
     # Businesses (owner-scoped; admin sees all via GET /businesses/)
     path('businesses/', BusinessView.as_view(), name='business-list-create'),
     path('businesses/<int:pk>/', BusinessDetailView.as_view(), name='business-detail'),
+    path('businesses/<int:business_id>/reviews/stats/', business_review_stats, name='review-stats'),
+    path('businesses/<int:business_id>/reviews/<int:review_id>/reply/', owner_reply_to_review, name='review-owner-reply'),
     path('businesses/<int:business_id>/reviews/', ReviewView.as_view(), name='review-list-create'),
 
     # Customer

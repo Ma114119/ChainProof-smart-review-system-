@@ -68,7 +68,7 @@ function Navbar() {
             { to: "/business/wallet", label: "Wallet", icon: <FaWallet /> },
             { to: "/business/reviews", label: "Reviews", icon: <FaComments /> },
             { to: "/business/inbox", label: "Inbox", icon: <FaEnvelope /> },
-            { to: "/business/manage", label: "Manage", icon: <FaCog /> },
+            { to: "/business/manage", label: "Manage Business", icon: <FaCog /> },
           ];
           break;
         case 'admin':

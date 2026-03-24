@@ -172,7 +172,7 @@ function ExploreBusinesses() {
                 </div>
                 ))}
             </div>
-            {totalPages > 1 && (
+            {processedBusinesses.length > 0 && (
                 <div style={styles.pagination}>
                     <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} style={styles.pageButton}>
                         <FaChevronLeft/>

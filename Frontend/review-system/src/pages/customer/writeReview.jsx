@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FaStar, FaArrowLeft, FaCoins, FaSpinner, FaInfoCircle, FaLightbulb, FaExternalLinkAlt } from 'react-icons/fa';
+import { FaStar, FaArrowLeft, FaCoins, FaSpinner, FaInfoCircle, FaLightbulb, FaExternalLinkAlt, FaSearch } from 'react-icons/fa';
 import { MdOutlineRateReview, MdOutlineTipsAndUpdates } from 'react-icons/md';
 import { IoShieldCheckmark } from 'react-icons/io5';
 import { fetchPublicBusinesses, fetchPublicBusiness, fetchAiSuggestion, submitReview } from '../../services/api';
@@ -56,6 +56,7 @@ function WriteReview() {
   const [txHash, setTxHash] = useState(null);
   const [businesses, setBusinesses] = useState([]);
   const [selectedBusinessId, setSelectedBusinessId] = useState(businessId || '');
+  const [businessListSearch, setBusinessListSearch] = useState('');
 
   // --- Helper Functions ---
   const showNotification = useCallback((message, type = 'success') => {
@@ -190,6 +191,27 @@ function WriteReview() {
 
   // --- Derived State ---
   const hasUnresolvedSuggestions = aiSuggestions.length > 0;
+
+  const filteredBusinessesPick = useMemo(() => {
+    const q = businessListSearch.trim().toLowerCase();
+    if (!q) return businesses;
+    return businesses.filter(
+      (b) =>
+        (b.name || '').toLowerCase().includes(q) ||
+        (b.category || '').toLowerCase().includes(q)
+    );
+  }, [businesses, businessListSearch]);
+
+  const selectBusinessFromList = useCallback((b) => {
+    setSelectedBusinessId(String(b.id));
+    setBusiness({
+      id: b.id,
+      name: b.name,
+      type: b.category,
+      location: b.address,
+      image: b.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(b.name)}&background=1E40AF&color=fff&size=300`,
+    });
+  }, []);
   
   // --- Dynamic Content & Styles ---
   const renderCommentWithSuggestions = useMemo(() => {
@@ -251,20 +273,40 @@ function WriteReview() {
                     </div>
 
                     {!businessId && businesses.length > 0 && (
-                      <div style={styles.inputGroup}>
+                      <div style={{ ...styles.inputGroup, ...styles.businessPickerBlock }}>
                         <label style={styles.label}>Select Business</label>
-                        <select
-                          value={selectedBusinessId}
-                          onChange={(e) => {
-                            const selected = businesses.find(b => String(b.id) === e.target.value);
-                            setSelectedBusinessId(e.target.value);
-                            if (selected) setBusiness({ id: selected.id, name: selected.name, type: selected.category, location: selected.address, image: selected.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(selected.name)}&background=1E40AF&color=fff&size=300` });
-                          }}
-                          style={{...styles.textarea, minHeight: 'auto', padding: '0.8rem 1rem', resize: 'none'}}
-                          className="input-focus"
-                        >
-                          {businesses.map(b => <option key={b.id} value={String(b.id)}>{b.name} ({b.category})</option>)}
-                        </select>
+                        <div style={styles.businessSearchRow} className="input-focus">
+                          <FaSearch style={{ color: '#9CA3AF', flexShrink: 0 }} />
+                          <input
+                            type="search"
+                            placeholder="Search by business name or category..."
+                            value={businessListSearch}
+                            onChange={(e) => setBusinessListSearch(e.target.value)}
+                            style={styles.businessSearchInput}
+                          />
+                        </div>
+                        <div style={styles.businessScrollList} role="listbox" aria-label="Businesses">
+                          {filteredBusinessesPick.length === 0 ? (
+                            <p style={styles.businessListEmpty}>No businesses match your search.</p>
+                          ) : (
+                            filteredBusinessesPick.map((b) => (
+                              <button
+                                key={b.id}
+                                type="button"
+                                role="option"
+                                aria-selected={String(b.id) === selectedBusinessId}
+                                onClick={() => selectBusinessFromList(b)}
+                                style={{
+                                  ...styles.businessOption,
+                                  ...(String(b.id) === selectedBusinessId ? styles.businessOptionActive : {}),
+                                }}
+                              >
+                                <span style={styles.businessOptionName}>{b.name}</span>
+                                <span style={styles.businessOptionCat}>{b.category}</span>
+                              </button>
+                            ))
+                          )}
+                        </div>
                       </div>
                     )}
 
@@ -290,19 +332,20 @@ function WriteReview() {
                             Share Your Experience
                             {aiLoading.analysis && <FaSpinner className="spin" style={{marginLeft: '10px', fontSize: '0.9rem'}}/>}
                         </label>
-                        <div style={{ position: 'relative' }}>
-                            <div style={{...styles.textarea, ...styles.textareaDisplay}}>{renderCommentWithSuggestions}</div>
-                            <textarea
-                                id="review-text"
-                                value={review.comment}
-                                onChange={handleInputChange}
-                                style={{...styles.textarea, ...styles.textareaEdit}}
-                                placeholder="What did you like or dislike? Would you recommend this place?"
-                                maxLength={500}
-                                className="input-focus"
-                            />
+                        <div style={styles.textareaShell} className="input-focus">
+                            <div style={styles.textareaInner}>
+                                <div style={{...styles.textarea, ...styles.textareaDisplay}}>{renderCommentWithSuggestions}</div>
+                                <textarea
+                                    id="review-text"
+                                    value={review.comment}
+                                    onChange={handleInputChange}
+                                    style={{...styles.textarea, ...styles.textareaEdit}}
+                                    placeholder="What did you like or dislike? Would you recommend this place?"
+                                    maxLength={500}
+                                />
+                            </div>
+                            <div style={styles.charCountInner}>{review.comment.length}/500</div>
                         </div>
-                        <div style={styles.charCount}>{review.comment.length}/500</div>
                     </div>
 
                     <div style={styles.inputGroup}>
@@ -387,7 +430,7 @@ const hoverStyles = `
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
-    .input-focus:focus {
+    .input-focus:focus-within {
         border-color: var(--button-bg);
         box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.3);
     }
@@ -417,28 +460,80 @@ const styles = {
     heroIcon: { fontSize: "3.5rem", color: "var(--hero-text)", marginBottom: "1rem", },
     heroTitle: { fontSize: "2.8rem", fontWeight: "bold", color: "var(--hero-text)", marginBottom: "0.5rem", },
     heroSubtitle: { fontSize: "1.1rem", color: "var(--text-color)", opacity: 0.9, maxWidth: '600px', margin: '0 auto', },
-    main: {         maxWidth: "1200px",
-        margin: "2rem auto",
-        padding: "0 2rem",
-        padding: "0 2rem 2rem 2rem",
-        marginBottom: '0rem', },
+    main: { maxWidth: "1200px", margin: "2rem auto", padding: "0 2rem 2rem 2rem" },
     layoutGrid: { display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '2rem', },
     formContainer: { backgroundColor: 'var(--card-bg)', padding: '2rem', borderRadius: '12px', boxShadow: 'var(--shadow)', },
     formHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--card-border)', paddingBottom: '1rem', marginBottom: '1.5rem', },
     sectionTitle: { fontSize: "1.8rem", fontWeight: "bold", color: "var(--header-text)", margin: 0, },
     coinsBadge: { display: 'inline-flex', alignItems: 'center', gap: '0.5rem', backgroundColor: 'var(--hero-bg)', color: 'var(--button-bg)', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.9rem', fontWeight: '500', },
     inputGroup: { marginBottom: '1.5rem', },
+    businessPickerBlock: { marginBottom: '2rem', zIndex: 2, position: 'relative' },
+    businessSearchRow: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.65rem',
+        padding: '0.55rem 0.85rem',
+        borderRadius: '10px',
+        border: '1px solid var(--card-border)',
+        backgroundColor: 'var(--bg-color)',
+        marginBottom: '0.65rem',
+    },
+    businessSearchInput: {
+        flex: 1,
+        border: 'none',
+        background: 'transparent',
+        color: 'var(--text-color)',
+        fontSize: '0.95rem',
+        outline: 'none',
+    },
+    businessScrollList: {
+        maxHeight: '200px',
+        overflowY: 'auto',
+        borderRadius: '10px',
+        border: '1px solid var(--card-border)',
+        backgroundColor: 'var(--bg-color)',
+    },
+    businessListEmpty: { margin: 0, padding: '1rem', fontSize: '0.9rem', opacity: 0.75, textAlign: 'center' },
+    businessOption: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: '0.2rem',
+        width: '100%',
+        padding: '0.75rem 1rem',
+        border: 'none',
+        borderBottom: '1px solid var(--card-border)',
+        background: 'transparent',
+        color: 'var(--text-color)',
+        cursor: 'pointer',
+        textAlign: 'left',
+    },
+    businessOptionActive: {
+        backgroundColor: 'rgba(59, 130, 246, 0.18)',
+        boxShadow: 'inset 3px 0 0 var(--button-bg)',
+    },
+    businessOptionName: { fontWeight: 600 },
+    businessOptionCat: { fontSize: '0.8rem', opacity: 0.75 },
     label: { display: 'block', marginBottom: '0.5rem', fontWeight: '500', display: 'flex', alignItems: 'center' },
     starRating: { display: 'flex', gap: '0.5rem', },
     star: { color: 'var(--card-border)', cursor: 'pointer', fontSize: '2rem', transition: 'all 0.2s', },
     starFilled: { color: 'var(--button-bg)', cursor: 'pointer', fontSize: '2rem', transition: 'all 0.2s', },
+    textareaShell: {
+        position: 'relative',
+        borderRadius: '12px',
+        border: '2px solid var(--card-border)',
+        backgroundColor: 'var(--bg-color)',
+        paddingBottom: '0',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+    },
+    textareaInner: { position: 'relative', minHeight: '168px' },
     textarea: { 
         width: '100%', 
-        minHeight: '150px', 
-        padding: '0.8rem 1rem', 
-        backgroundColor: 'var(--bg-color)', 
-        border: '2px solid var(--card-border)', 
-        borderRadius: '8px', 
+        minHeight: '168px', 
+        padding: '1rem 1rem 0.5rem 1rem', 
+        backgroundColor: 'transparent', 
+        border: 'none', 
+        borderRadius: '10px', 
         color: 'var(--text-color)', 
         fontSize: '1rem', 
         resize: 'vertical', 
@@ -446,6 +541,7 @@ const styles = {
         transition: 'all 0.2s ease-in-out',
         lineHeight: 1.6,
         fontFamily: 'inherit',
+        boxSizing: 'border-box',
     },
     textareaDisplay: {
         minHeight: '150px',
@@ -468,7 +564,14 @@ const styles = {
         cursor: 'pointer',
         color: 'var(--text-color)',
     },
-    charCount: { textAlign: 'right', fontSize: '0.8rem', opacity: 0.7, marginTop: '0.25rem', },
+    charCountInner: {
+        position: 'absolute',
+        right: '12px',
+        bottom: '10px',
+        fontSize: '0.75rem',
+        opacity: 0.65,
+        pointerEvents: 'none',
+    },
     aiButtons: { display: 'flex', gap: '0.5rem', },
     aiButton: { display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--hero-bg)', border: '1px solid var(--card-border)', color: 'var(--text-color)', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', transition: 'all 0.2s ease-in-out', },
     submissionContainer: { display: 'flex', flexDirection: 'column', gap: '0.5rem', alignItems: 'center' },

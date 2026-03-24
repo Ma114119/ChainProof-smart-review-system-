@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   fetchAdminContactSubmissions, updateContactSubmissionStatus,
   fetchAdminSupportThreads, fetchAdminThreadMessages, adminReplySupport,
@@ -83,7 +83,13 @@ const Inbox = () => {
       setLoading(true);
       const data = await fetchAdminContactSubmissions();
       setSubmissions(data || []);
-      if (data?.length > 0 && !selectedId) setSelectedId(data[0].id);
+      if (data?.length > 0) {
+        setSelectedId((prev) => {
+          if (prev && data.some((s) => s.id === prev)) return prev;
+          const sorted = [...data].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          return sorted[0].id;
+        });
+      }
     } catch (err) {
       console.error('Failed to load contact submissions:', err);
     } finally {
@@ -96,7 +102,13 @@ const Inbox = () => {
       setSupportLoading(true);
       const data = await fetchAdminSupportThreads();
       setThreads(data || []);
-      if (data?.length > 0 && !selectedThreadId) setSelectedThreadId(data[0].id);
+      if (data?.length > 0) {
+        setSelectedThreadId((prev) => {
+          if (prev && data.some((t) => t.id === prev)) return prev;
+          const sorted = [...data].sort((a, b) => new Date(b.last_at) - new Date(a.last_at));
+          return sorted[0].id;
+        });
+      }
     } catch (err) {
       console.error('Failed to load support threads:', err);
     } finally {
@@ -123,18 +135,27 @@ const Inbox = () => {
     if (activeTab === 'support' && selectedThreadId) loadThreadMessages(selectedThreadId);
   }, [activeTab, selectedThreadId, loadThreadMessages]);
 
-  const filteredSubmissions = submissions.filter(s => {
-    const matchesFilter = filter === 'All' || s.status === filter;
-    const matchesSearch = !searchTerm ||
-      s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.subject?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.message?.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  const filteredSubmissions = useMemo(() => {
+    const filtered = submissions.filter((s) => {
+      const matchesFilter = filter === 'All' || s.status === filter;
+      const q = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm ||
+        s.name?.toLowerCase().includes(q) ||
+        s.email?.toLowerCase().includes(q) ||
+        s.subject?.toLowerCase().includes(q) ||
+        s.message?.toLowerCase().includes(q);
+      return matchesFilter && matchesSearch;
+    });
+    return [...filtered].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }, [submissions, filter, searchTerm]);
+
+  const sortedThreads = useMemo(
+    () => [...threads].sort((a, b) => new Date(b.last_at) - new Date(a.last_at)),
+    [threads]
+  );
 
   const selected = submissions.find(s => s.id === selectedId);
-  const selectedThread = threads.find(t => t.id === selectedThreadId);
+  const selectedThread = sortedThreads.find(t => t.id === selectedThreadId);
 
   const handleMarkResolved = async () => {
     if (!selected) return;
@@ -266,8 +287,8 @@ const Inbox = () => {
                   <span style={{ fontSize: '0.9rem', color: 'var(--text-color)' }}>Customers & Owners</span>
                 </div>
                 <div style={styles.submissionList}>
-                  {threads.length > 0 ? (
-                    threads.map(t => (
+                  {sortedThreads.length > 0 ? (
+                    sortedThreads.map(t => (
                       <SupportThreadCard key={t.id} thread={t} isActive={selectedThreadId === t.id} onClick={() => setSelectedThreadId(t.id)} />
                     ))
                   ) : (

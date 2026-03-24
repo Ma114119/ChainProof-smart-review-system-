@@ -13,6 +13,12 @@ import {
 
 const COLORS = ['#10B981', '#FFBB28', '#FF8042', '#8884D8'];
 
+const REVIEW_LINE_KEYS = [
+  { key: 'positive', label: 'Positive', color: '#00C49F' },
+  { key: 'negative', label: 'Negative', color: '#FF8042' },
+  { key: 'flagged', label: 'Flagged', color: '#FF0000' },
+];
+
 function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,6 +26,8 @@ function AdminDashboard() {
   const [timeRange, setTimeRange] = useState('7d');
   const [searchQuery, setSearchQuery] = useState('');
   const [announcement, setAnnouncement] = useState('');
+  /** null = show all three lines; otherwise only that series */
+  const [reviewSeriesFilter, setReviewSeriesFilter] = useState(null);
 
   const buildChartsFromStats = (stats) => {
     const userGrowth = (stats.userGrowth || []).map(d => ({
@@ -179,9 +187,27 @@ function AdminDashboard() {
               <div style={styles.cardHeader}>
                 <h3 style={styles.cardTitle}><FaComments /> Review Activity</h3>
                 <div style={styles.legend}>
-                    <span style={{...styles.legendItem, color: '#00C49F'}}><span style={{...styles.legendColor, backgroundColor: '#00C49F'}}></span>Positive</span>
-                    <span style={{...styles.legendItem, color: '#FF8042'}}><span style={{...styles.legendColor, backgroundColor: '#FF8042'}}></span>Negative</span>
-                    <span style={{...styles.legendItem, color: '#FF0000'}}><span style={{...styles.legendColor, backgroundColor: '#FF0000'}}></span>Flagged</span>
+                  {REVIEW_LINE_KEYS.map(({ key, label, color }) => {
+                    const active = reviewSeriesFilter === null || reviewSeriesFilter === key;
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setReviewSeriesFilter((prev) => (prev === key ? null : key))}
+                        style={{
+                          ...styles.legendItem,
+                          ...styles.legendButton,
+                          color,
+                          opacity: active ? 1 : 0.35,
+                          border: `1px solid ${active ? color : 'transparent'}`,
+                        }}
+                        title={reviewSeriesFilter === key ? 'Click to show all lines' : `Show only ${label}`}
+                      >
+                        <span style={{ ...styles.legendColor, backgroundColor: color }} />
+                        {label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={300}>
@@ -190,9 +216,15 @@ function AdminDashboard() {
                   <XAxis dataKey="name" stroke="var(--text-color)" />
                   <YAxis stroke="var(--text-color)"/>
                   <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--card-border)' }}/>
-                  <Line type="monotone" dataKey="positive" stroke="#00C49F" strokeWidth={2} name="Positive" />
-                  <Line type="monotone" dataKey="negative" stroke="#FF8042" strokeWidth={2} name="Negative" />
-                  <Line type="monotone" dataKey="flagged" stroke="#FF0000" strokeWidth={2} name="Flagged" />
+                  {(reviewSeriesFilter === null || reviewSeriesFilter === 'positive') && (
+                    <Line type="monotone" dataKey="positive" stroke="#00C49F" strokeWidth={2} name="Positive" dot={{ r: 3 }} />
+                  )}
+                  {(reviewSeriesFilter === null || reviewSeriesFilter === 'negative') && (
+                    <Line type="monotone" dataKey="negative" stroke="#FF8042" strokeWidth={2} name="Negative" dot={{ r: 3 }} />
+                  )}
+                  {(reviewSeriesFilter === null || reviewSeriesFilter === 'flagged') && (
+                    <Line type="monotone" dataKey="flagged" stroke="#FF0000" strokeWidth={2} name="Flagged" dot={{ r: 3 }} />
+                  )}
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -279,9 +311,10 @@ const styles = {
     chartCard: { backgroundColor: 'var(--card-bg)', borderRadius: '12px', padding: '1.5rem', boxShadow: 'var(--shadow)', border: '1px solid var(--card-border)' },
     cardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
     cardTitle: { margin: 0, fontSize: '1.2rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.75rem' },
-    legend: { display: 'flex', gap: '1rem', fontSize: '0.9rem' },
+    legend: { display: 'flex', flexWrap: 'wrap', gap: '0.5rem', fontSize: '0.9rem', alignItems: 'center', justifyContent: 'flex-end' },
     legendItem: { display: 'flex', alignItems: 'center', gap: '0.5rem' },
-    legendColor: { width: '12px', height: '12px', borderRadius: '50%' },
+    legendButton: { background: 'transparent', cursor: 'pointer', borderRadius: '999px', padding: '0.35rem 0.75rem', font: 'inherit' },
+    legendColor: { width: '12px', height: '12px', borderRadius: '50%', flexShrink: 0 },
     
     // Quick Actions
     quickActions: { display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' },
