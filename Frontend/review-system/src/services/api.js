@@ -3,11 +3,12 @@
 // Central API service layer with JWT token management.
 // =================================================================
 
-// In dev with proxy: use '' so requests go to same origin and get proxied to backend
-// Otherwise use REACT_APP_API_URL or default backend URL
-const BASE_URL = (typeof process.env.NODE_ENV !== 'undefined' && process.env.NODE_ENV === 'development' && !process.env.REACT_APP_API_URL)
-  ? ''
-  : (process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000');
+// API base URL (Create React App: set REACT_APP_API_URL in .env / Vercel env).
+// Development default: http://127.0.0.1:8000. Production: your Render (or other) API origin, e.g. https://chainproof-api.onrender.com
+// All HTTP calls use fetch() in this module (no axios).
+const envApiUrl = (process.env.REACT_APP_API_URL || '').trim().replace(/\/$/, '');
+const isDev = process.env.NODE_ENV === 'development';
+const BASE_URL = envApiUrl || (isDev ? 'http://127.0.0.1:8000' : '');
 
 // --- Token Helpers ---
 export const getAccessToken = () => localStorage.getItem('accessToken');

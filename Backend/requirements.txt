@@ -6,6 +6,11 @@ django-cors-headers>=4.3
 djangorestframework-simplejwt>=5.3
 psycopg2-binary>=2.9
 
+# Production (WSGI, static files, DATABASE_URL)
+gunicorn>=22.0
+whitenoise>=6.6
+dj-database-url>=2.2
+
 # AI / NLP (Llama 3.2)
 torch>=2.0
 transformers>=4.36
