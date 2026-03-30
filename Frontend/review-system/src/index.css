@@ -1,7 +1,25 @@
-html, body, #root {
+/* =================================================================
+   ChainProof — global layout (mobile-first) + responsive navbar + register
+   ================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
   min-height: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -15,4 +33,338 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ----- Navbar (responsive + hamburger < 768px) ----- */
+.app-navbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 0.75rem clamp(0.75rem, 3vw, 1.5rem);
+  background-color: var(--card-bg);
+  color: var(--header-text);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 1003;
+  gap: 0;
+}
+
+.app-navbar__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.app-navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  cursor: pointer;
+  color: var(--header-text);
+  font-size: clamp(1rem, 4vw, 1.5rem);
+  font-weight: bold;
+}
+
+.app-navbar__logo {
+  height: clamp(36px, 8vw, 48px);
+  width: auto;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
+.app-navbar__brand .logo-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(42vw, 11rem);
+  min-width: 0;
+}
+
+.app-navbar__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem 0.85rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.app-navbar__end {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.app-navbar__menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  background: var(--hero-bg);
+  color: var(--text-color);
+  font-size: 1.15rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.app-navbar__menu-btn:focus-visible {
+  outline: 2px solid var(--button-bg);
+  outline-offset: 2px;
+}
+
+.app-navbar__theme {
+  font-size: 1.15rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.app-navbar__theme:hover {
+  background: var(--hero-bg);
+}
+
+.app-navbar__link {
+  text-decoration: none;
+  color: var(--text-color);
+  font-weight: 500;
+  font-size: 0.92rem;
+  cursor: pointer;
+  padding: 0.5rem 0.35rem;
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.app-navbar__link:hover {
+  color: var(--button-bg);
+}
+
+.app-navbar__link.is-active {
+  color: var(--button-bg);
+  font-weight: 700;
+  border-bottom-color: var(--button-bg);
+}
+
+.app-navbar__link--cta {
+  background-color: var(--button-bg);
+  color: #fff !important;
+  padding: 0.55rem 1rem !important;
+  border-radius: 8px;
+  border-bottom: none !important;
+}
+
+.app-navbar__link--cta.is-active {
+  border-bottom: none;
+  opacity: 0.95;
+}
+
+.app-navbar__link--login {
+  margin-left: 0;
+}
+
+.app-navbar__link--logout {
+  background: none;
+  border: none;
+  font: inherit;
+  color: #ef4444 !important;
+}
+
+.app-navbar__backdrop {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .app-navbar__menu-btn {
+    display: flex;
+  }
+
+  .app-navbar__nav {
+    display: none;
+    position: fixed;
+    top: 3.75rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1002;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 1rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.15rem;
+    background-color: var(--card-bg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-navbar__nav.is-open {
+    display: flex;
+  }
+
+  .app-navbar__link {
+    white-space: normal;
+    padding: 0.85rem 0.75rem;
+    border-bottom: 1px solid var(--card-border);
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  .app-navbar__link.is-active {
+    border-bottom-color: var(--card-border);
+    background: var(--hero-bg);
+  }
+
+  .app-navbar__link--cta {
+    justify-content: center;
+    margin-top: 0.35rem;
+  }
+
+  .app-navbar__backdrop.is-visible {
+    display: block;
+    position: fixed;
+    top: 3.75rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1001;
+    background: rgba(15, 23, 42, 0.5);
+    backdrop-filter: blur(2px);
+  }
+}
+
+@media (min-width: 768px) {
+  .app-navbar {
+    flex-direction: row;
+    align-items: center;
+    padding: 1rem clamp(1rem, 3vw, 2.5rem);
+  }
+
+  .app-navbar__row {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .app-navbar__nav {
+    order: 0;
+  }
+
+  .app-navbar__link--login {
+    margin-left: 0.5rem;
+  }
+}
+
+/* ----- Register / Sign-up page ----- */
+.register-page {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.register-form-wrapper {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.register-form-column {
+  min-width: 0;
+}
+
+.register-intro-column {
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .register-page {
+    padding: 1rem 0.75rem 2rem !important;
+    align-items: flex-start !important;
+  }
+
+  .register-form-wrapper {
+    flex-direction: column !important;
+    border-radius: 12px;
+    margin: 0 auto;
+  }
+
+  .register-form-column {
+    padding: clamp(1.25rem, 4vw, 1.75rem) clamp(1rem, 4vw, 1.35rem) !important;
+  }
+
+  .register-intro-column {
+    padding: clamp(1.25rem, 4vw, 1.75rem) clamp(1rem, 4vw, 1.35rem) !important;
+    order: 2;
+  }
+
+  .register-role-selector {
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+    padding: 0.75rem !important;
+  }
+
+  .register-role-selector button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .register-input-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+
+  .register-social-row {
+    flex-direction: column !important;
+    gap: 0.65rem !important;
+  }
+
+  .register-social-row button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .register-notification {
+    min-width: unset !important;
+    max-width: calc(100vw - 1.5rem) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1023px) {
+  .register-form-column {
+    padding: 2rem 1.75rem !important;
+  }
+
+  .register-intro-column {
+    padding: 1.5rem 1.75rem 2rem !important;
+  }
 }

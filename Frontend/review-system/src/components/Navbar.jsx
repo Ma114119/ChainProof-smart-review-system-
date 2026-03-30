@@ -1,28 +1,37 @@
 // =================================================================
-// FILE: src/components/Navbar.js (UPDATED & FIXED)
+// Navbar — role-based links, theme toggle, mobile hamburger (<768px)
 // =================================================================
-// A cleaner, more professional navbar that reads the user role directly
-// from localStorage. All links are now fully visible for every role.
 
-import React, { useContext, useState, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import React, { useContext, useState, useEffect, useCallback } from "react";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { ThemeContext } from "../context/ThemeContext";
 import { clearAuthData } from "../services/api";
 import {
   FaTachometerAlt, FaUserCircle, FaWallet, FaCompass,
   FaSignOutAlt, FaBuilding, FaComments, FaCog, FaUsers,
   FaShieldAlt, FaBook, FaSun, FaMoon, FaHome,
-  FaMoneyBillWave, FaEnvelope, FaChartBar, FaCogs, FaPenFancy
+  FaMoneyBillWave, FaEnvelope, FaChartBar, FaCogs, FaPenFancy,
+  FaBars, FaTimes,
 } from 'react-icons/fa';
+
+const linkClass = ({ isActive }) =>
+  `app-navbar__link${isActive ? " is-active" : ""}`;
+
+const ctaClass = ({ isActive }) =>
+  `app-navbar__link app-navbar__link--cta${isActive ? " is-active" : ""}`;
 
 function Navbar() {
   const { darkMode, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [userRole, setUserRole] = useState(localStorage.getItem('userRole') || 'public');
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
   const isAuthenticated = userRole !== 'public';
 
-  // Re-read role whenever auth state changes (login/logout events)
+  const closeMobileNav = useCallback(() => setMobileNavOpen(false), []);
+
   useEffect(() => {
     const syncRole = () => setUserRole(localStorage.getItem('userRole') || 'public');
     window.addEventListener('authChanged', syncRole);
@@ -33,19 +42,38 @@ function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    closeMobileNav();
+  }, [location.pathname, closeMobileNav]);
+
+  useEffect(() => {
+    if (mobileNavOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const onChange = () => {
+      if (mq.matches) setMobileNavOpen(false);
+    };
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
   const logout = () => {
     clearAuthData();
     setUserRole('public');
     window.dispatchEvent(new Event('authChanged'));
+    closeMobileNav();
     navigate('/login');
   };
 
-  const activeLinkStyle = {
-    color: 'var(--button-bg)',
-    fontWeight: 'bold',
-  };
-
-  // Renders the correct links based on user role
   const renderLinks = () => {
     if (isAuthenticated) {
       let mainLinks = [];
@@ -89,70 +117,121 @@ function Navbar() {
 
       return (
         <>
-          {mainLinks.map(link => (
-            <NavLink key={link.to} to={link.to} style={({isActive}) => ({...styles.navItem, ...(isActive ? activeLinkStyle : {})})}>
+          {mainLinks.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={linkClass}
+              onClick={closeMobileNav}
+            >
               {link.icon} {link.label}
             </NavLink>
           ))}
-          <button onClick={logout} style={{...styles.navItem, ...styles.logoutButton, background: 'none', border: 'none'}}>
+          <button
+            type="button"
+            onClick={logout}
+            className="app-navbar__link app-navbar__link--logout"
+          >
             <FaSignOutAlt /> Logout
           </button>
         </>
       );
-
-    } else { // Public (logged out) links
-      return (
-        <>
-          <NavLink to="/" style={({isActive}) => ({...styles.navItem, ...(isActive ? activeLinkStyle : {})})}>
-            <FaHome style={styles.navIcon} /> Home
-          </NavLink>
-          <NavLink to="/explore" style={({isActive}) => ({...styles.navItem, ...(isActive ? activeLinkStyle : {})})}>
-            <FaCompass style={styles.navIcon} /> Explore
-          </NavLink>
-          <NavLink to="/review-guidelines" style={({isActive}) => ({...styles.navItem, ...(isActive ? activeLinkStyle : {})})}>
-            <FaBook style={styles.navIcon} /> Guidelines
-          </NavLink>
-          <NavLink to="/login" style={{...styles.navItem, ...styles.loginButton}}>Login</NavLink>
-          <NavLink to="/register" style={{...styles.navItem, ...styles.registerButton}}>Sign Up</NavLink>
-        </>
-      );
     }
+
+    return (
+      <>
+        <NavLink to="/" className={linkClass} onClick={closeMobileNav}>
+          <FaHome style={{ flexShrink: 0 }} /> Home
+        </NavLink>
+        <NavLink to="/explore" className={linkClass} onClick={closeMobileNav}>
+          <FaCompass style={{ flexShrink: 0 }} /> Explore
+        </NavLink>
+        <NavLink to="/review-guidelines" className={linkClass} onClick={closeMobileNav}>
+          <FaBook style={{ flexShrink: 0 }} /> Guidelines
+        </NavLink>
+        <NavLink
+          to="/login"
+          className={({ isActive }) =>
+            `app-navbar__link app-navbar__link--login${isActive ? " is-active" : ""}`
+          }
+          onClick={closeMobileNav}
+        >
+          Login
+        </NavLink>
+        <NavLink to="/register" className={ctaClass} onClick={closeMobileNav}>
+          Sign Up
+        </NavLink>
+      </>
+    );
   };
 
   return (
-    <header style={styles.navbar}>
+    <header className="app-navbar">
       <style>{logoGlowStyles}</style>
-      <div style={styles.logo} onClick={() => navigate("/")} className="logo-glow">
-        <img src="/chainproof-logo.png" alt="ChainProof" style={styles.logoImg} />
-        <span className="logo-text">ChainProof</span>
+      <div className="app-navbar__row">
+        <div
+          className="app-navbar__brand logo-glow"
+          onClick={() => {
+            navigate("/");
+            closeMobileNav();
+          }}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              navigate("/");
+              closeMobileNav();
+            }
+          }}
+        >
+          <img src="/chainproof-logo.png" alt="" className="app-navbar__logo" />
+          <span className="logo-text">ChainProof</span>
+        </div>
+
+        <nav
+          className={`app-navbar__nav${mobileNavOpen ? " is-open" : ""}`}
+          id="main-navigation"
+          aria-label="Main navigation"
+        >
+          {renderLinks()}
+        </nav>
+
+        <div className="app-navbar__end">
+          <button
+            type="button"
+            className="app-navbar__menu-btn"
+            aria-label={mobileNavOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileNavOpen}
+            aria-controls="main-navigation"
+            onClick={() => setMobileNavOpen((o) => !o)}
+          >
+            {mobileNavOpen ? <FaTimes /> : <FaBars />}
+          </button>
+          <button
+            type="button"
+            className="app-navbar__theme"
+            onClick={toggleTheme}
+            aria-label={darkMode ? "Switch to light theme" : "Switch to dark theme"}
+          >
+            {darkMode ? <FaSun /> : <FaMoon />}
+          </button>
+        </div>
       </div>
-      <nav style={styles.navLinks}>
-        {renderLinks()}
-      </nav>
-      <button style={styles.themeToggle} onClick={toggleTheme}>
-        {darkMode ? <FaSun /> : <FaMoon />}
-      </button>
+
+      <div
+        className={`app-navbar__backdrop${mobileNavOpen ? " is-visible" : ""}`}
+        onClick={closeMobileNav}
+        aria-hidden="true"
+      />
     </header>
   );
 }
 
-// Professional Styles for the Navbar
 const logoGlowStyles = `
   .logo-glow { transition: all 0.3s ease; }
   .logo-glow:hover .logo-text { filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.8)); }
   .logo-glow .logo-text { background: linear-gradient(135deg, #22d3ee 0%, #3b82f6 50%, #8b5cf6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 800; letter-spacing: -0.5px; text-shadow: 0 0 30px rgba(34, 211, 238, 0.5); }
 `;
-const styles = {
-    navbar: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1rem 2.5rem", backgroundColor: "var(--card-bg)", color: "var(--header-text)", boxShadow: "var(--shadow)", position: "sticky", top: 0, zIndex: 1000 },
-    logo: { fontSize: "1.5rem", fontWeight: "bold", cursor: "pointer", color: "var(--header-text)", display: 'flex', alignItems: 'center', gap: '0.5rem' },
-    logoImg: { height: 48, width: 'auto', flexShrink: 0 },
-    navLinks: { display: "flex", gap: "1.2rem", alignItems: "center", flexWrap: 'wrap', justifyContent: 'center' },
-    navItem: { textDecoration: "none", color: "var(--text-color)", fontWeight: 500, fontSize: "0.95rem", cursor: "pointer", padding: "0.5rem 0", borderBottom: "2px solid transparent", transition: "color 0.2s ease, border-color 0.2s ease", display: 'flex', alignItems: 'center', gap: '0.5rem' },
-    navIcon: { fontSize: '1rem', flexShrink: 0, color: 'inherit' },
-    loginButton: { marginLeft: '1rem' },
-    registerButton: { backgroundColor: 'var(--button-bg)', color: 'white', padding: '0.6rem 1.2rem', borderRadius: '8px', borderBottom: 'none' },
-    themeToggle: { fontSize: "1.2rem", cursor: "pointer", background: 'none', border: 'none', color: 'var(--text-color)' },
-    logoutButton: { color: '#EF4444' }
-};
 
 export default Navbar;

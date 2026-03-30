@@ -10,7 +10,10 @@ import { ChainProofBrandStrip } from "../../components/ChainProofBrandStrip";
 
 // --- Notification Banner ---
 const Notification = ({ message, type, onDismiss }) => (
-    <div style={{ ...styles.notification, ...(type === 'error' ? styles.notificationError : styles.notificationSuccess) }}>
+    <div
+        className="register-notification"
+        style={{ ...styles.notification, ...(type === 'error' ? styles.notificationError : styles.notificationSuccess) }}
+    >
         <FaInfoCircle style={{ marginRight: '0.75rem' }} />
         <span>{message}</span>
         <button onClick={onDismiss} style={styles.notificationDismiss}>&times;</button>
@@ -304,13 +307,13 @@ function Register() {
   `;
 
   return (
-    <div style={styles.pageContainer}>
+    <div className="register-page" style={styles.pageContainer}>
         <style>{hoverStyles}</style>
         {notification.show && <Notification message={notification.message} type={notification.type} onDismiss={() => setNotification({ ...notification, show: false })} />}
         
-        <div style={styles.formWrapper}>
+        <div className="register-form-wrapper" style={styles.formWrapper}>
             {/* Left Side: Form */}
-            <div style={styles.formColumn}>
+            <div className="register-form-column" style={styles.formColumn}>
                 <h2 style={styles.title}>{step === 'otp' ? 'Verify Your Email' : 'Create Your Account'}</h2>
                 <p style={styles.subtitle}>
                   {step === 'otp'
@@ -379,13 +382,13 @@ function Register() {
 
                     <div style={styles.inputGroup}>
                         <label style={styles.label}>Account Type</label>
-                        <div style={styles.roleSelector}>
+                        <div className="register-role-selector" style={styles.roleSelector}>
                             <button type="button" onClick={() => handleRoleChange('customer')} style={form.user.role === 'customer' ? {...styles.roleButton, ...styles.roleButtonActive} : styles.roleButton}><FaUser/> Customer</button>
                             <button type="button" onClick={() => handleRoleChange('business')} style={form.user.role === 'business' ? {...styles.roleButton, ...styles.roleButtonActive} : styles.roleButton}><FaBuilding/> Business Owner</button>
                         </div>
                     </div>
 
-                    <div style={styles.inputGrid}>
+                    <div className="register-input-grid" style={styles.inputGrid}>
                         <div style={styles.inputGroup}><label style={styles.label}>Full Name</label><input name="fullName" placeholder="Ahmed Ali" value={form.user.fullName} onChange={(e) => handleChange('user', e)} style={styles.input} className="input-focus" required /></div>
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>Email</label>
@@ -400,7 +403,7 @@ function Register() {
                         {errors.cnic && <p style={styles.errorText}>{errors.cnic}</p>}
                     </div>
 
-                    <div style={styles.inputGrid}>
+                    <div className="register-input-grid" style={styles.inputGrid}>
                         <div style={styles.inputGroup}>
                             <label style={styles.label}>Password</label>
                             <PasswordInput name="password" value={form.user.password} onChange={(e) => handleChange('user', e)} placeholder="••••••••" />
@@ -418,11 +421,11 @@ function Register() {
                             <h3 style={styles.sectionTitle}>Business Information</h3>
                             <div style={styles.inputGroup}><label style={styles.label}>Business Name</label><input name="name" placeholder="e.g., Gourmet Delight" value={form.business.name} onChange={(e) => handleChange('business', e)} style={styles.input} className="input-focus" required /></div>
                             <div style={styles.inputGroup}><label style={styles.label}>Business Description</label><textarea name="description" placeholder="A short description of your business..." value={form.business.description} onChange={(e) => handleChange('business', e)} style={{...styles.input, minHeight: '80px'}} className="input-focus" required /></div>
-                            <div style={styles.inputGrid}>
+                            <div className="register-input-grid" style={styles.inputGrid}>
                                 <div style={styles.inputGroup}><label style={styles.label}>Business Type</label><input name="category" placeholder="e.g., Restaurant" value={form.business.category} onChange={(e) => handleChange('business', e)} style={styles.input} className="input-focus" required /></div>
                                 <div style={styles.inputGroup}><label style={styles.label}>Location</label><input name="address" placeholder="City, Country" value={form.business.address} onChange={(e) => handleChange('business', e)} style={styles.input} className="input-focus" required /></div>
                             </div>
-                            <div style={styles.inputGrid}>
+                            <div className="register-input-grid" style={styles.inputGrid}>
                                 <div style={styles.inputGroup}><label style={styles.label}>Contact Number</label><input name="phoneNumber" placeholder="+92 300 1234567" value={form.business.phoneNumber} onChange={(e) => handleChange('business', e)} style={styles.input} className="input-focus" required /></div>
                                 <div style={styles.inputGroup}><label style={styles.label}>Establishment Year</label><input name="establishmentYear" placeholder="e.g., 2020" value={form.business.establishmentYear} onChange={(e) => handleChange('business', e)} style={styles.input} className="input-focus" type="number" min="1900" max={new Date().getFullYear()} /></div>
                             </div>
@@ -441,7 +444,7 @@ function Register() {
                 
                     <div style={styles.divider}><span>OR</span></div>
 
-                    <div style={styles.socialLoginContainer}>
+                    <div className="register-social-row" style={styles.socialLoginContainer}>
                         <button type="button" onClick={() => handleSocialLogin('Google')} style={styles.socialButton}><FaGoogle/> Sign up with Google</button>
                         <button type="button" onClick={() => handleSocialLogin('Facebook')} style={styles.socialButton}><FaFacebook/> Sign up with Facebook</button>
                     </div>
@@ -455,7 +458,7 @@ function Register() {
             </div>
 
             {/* Right: Intro Text */}
-            <div style={styles.introColumn}>
+            <div className="register-intro-column" style={styles.introColumn}>
                 <ChainProofBrandStrip />
                 <h2 style={styles.introTitle}>{isBusiness ? "Build a Trusted Brand" : "Become a Valued Contributor"}</h2>
                 <p style={styles.introText}>
