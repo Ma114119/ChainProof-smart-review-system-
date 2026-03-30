@@ -5,6 +5,7 @@ djangorestframework>=3.14
 django-cors-headers>=4.3
 djangorestframework-simplejwt>=5.3
 psycopg2-binary>=2.9
+Pillow>=10.0
 
 # Production (WSGI, static files, DATABASE_URL)
 gunicorn>=22.0
