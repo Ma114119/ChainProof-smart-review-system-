@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { fetchAdminUsers, updateUser, deleteUser } from '../../services/api';
-import { 
-    FaUsers, FaUser, FaUserShield, FaUserCheck, FaUserSlash, FaUserClock,
-    FaSearch, FaFilter, FaEnvelope, FaCheck, FaTimes,
+import {
+    FaUserCheck, FaUserSlash,
+    FaSearch, FaEnvelope, FaCheck, FaTimes,
     FaSpinner, FaChevronLeft, FaChevronRight, FaTrashAlt, FaExclamationTriangle
 } from 'react-icons/fa';
 
@@ -261,8 +260,12 @@ const styles = {
     heroTitle: { fontSize: "2.2rem", fontWeight: "bold", color: "var(--hero-text)", margin: "0 0 0.5rem 0" },
     heroSubtitle: { fontSize: "1rem", color: "var(--text-color)", opacity: 0.9, margin: 0 },
     // Main
-    main: { maxWidth: "1200px", margin: "2rem auto", padding: "0 2rem" ,marginBottom: '0rem',
-        padding: "0 2rem 2rem 2rem", },
+    main: {
+        maxWidth: "1200px",
+        margin: "2rem auto",
+        padding: "0 2rem 2rem 2rem",
+        marginBottom: '0rem',
+    },
     // User List
     userListContainer: { backgroundColor: 'var(--card-bg)', borderRadius: '12px', boxShadow: 'var(--shadow)', padding: '2rem' },
     listHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },

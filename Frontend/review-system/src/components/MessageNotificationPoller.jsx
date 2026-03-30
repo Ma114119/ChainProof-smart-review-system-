@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { fetchUnreadSupportCount, fetchAdminContactSubmissions, fetchAdminSupportThreads } from '../services/api';
 
 const POLL_INTERVAL = 45000; // 45 seconds

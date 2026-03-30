@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { fetchMyBusinesses, updateBusiness as apiUpdateBusiness, deleteBusiness as apiDeleteBusiness, transferBusinessOwner, fetchAdminUsers } from '../../services/api';
-import { 
-    FaBuilding, 
+import {
     FaSpinner,
     FaExclamationTriangle,
     FaSave,
@@ -512,7 +511,7 @@ function AdminBusinessManagement() {
 
     useEffect(() => {
         fetchBusinesses();
-    }, []);
+    }, [fetchBusinesses]);
 
     const showToast = (message, type = 'success') => {
         setToast({ message, type });

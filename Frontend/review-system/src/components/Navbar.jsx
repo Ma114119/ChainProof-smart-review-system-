@@ -5,7 +5,7 @@
 // from localStorage. All links are now fully visible for every role.
 
 import React, { useContext, useState, useEffect } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { ThemeContext } from "../context/ThemeContext";
 import { clearAuthData } from "../services/api";
 import {

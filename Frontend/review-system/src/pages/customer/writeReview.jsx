@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { FaStar, FaArrowLeft, FaCoins, FaSpinner, FaInfoCircle, FaLightbulb, FaExternalLinkAlt, FaSearch } from 'react-icons/fa';
+import { FaStar, FaArrowLeft, FaCoins, FaSpinner, FaInfoCircle, FaSearch } from 'react-icons/fa';
 import { MdOutlineRateReview, MdOutlineTipsAndUpdates } from 'react-icons/md';
 import { IoShieldCheckmark } from 'react-icons/io5';
 import { fetchPublicBusinesses, fetchPublicBusiness, fetchAiSuggestion, submitReview } from '../../services/api';
@@ -514,7 +514,7 @@ const styles = {
     },
     businessOptionName: { fontWeight: 600 },
     businessOptionCat: { fontSize: '0.8rem', opacity: 0.75 },
-    label: { display: 'block', marginBottom: '0.5rem', fontWeight: '500', display: 'flex', alignItems: 'center' },
+    label: { display: 'flex', marginBottom: '0.5rem', fontWeight: '500', alignItems: 'center' },
     starRating: { display: 'flex', gap: '0.5rem', },
     star: { color: 'var(--card-border)', cursor: 'pointer', fontSize: '2rem', transition: 'all 0.2s', },
     starFilled: { color: 'var(--button-bg)', cursor: 'pointer', fontSize: '2rem', transition: 'all 0.2s', },

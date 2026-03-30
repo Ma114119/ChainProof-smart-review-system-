@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { fetchMySupportMessages, sendSupportMessage } from '../../services/api';
-import { FaInbox, FaPaperPlane, FaSpinner, FaComments, FaPaperclip } from 'react-icons/fa';
+import { FaPaperPlane, FaSpinner, FaComments, FaPaperclip } from 'react-icons/fa';
 
 const formatRelativeTime = (dateStr) => {
   const date = new Date(dateStr);

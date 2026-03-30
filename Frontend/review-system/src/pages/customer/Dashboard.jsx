@@ -473,7 +473,6 @@ const styles = {
     main: {
         maxWidth: "1200px",
         margin: "2rem auto",
-        padding: "0 2rem",
         padding: "0 2rem 2rem 2rem",
         marginBottom: '0rem',
     },

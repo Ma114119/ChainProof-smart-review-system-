@@ -27,6 +27,26 @@ function maskBlockchainHash(hash) {
     return `${t.slice(0, 6)}…${t.slice(-4)}`;
 }
 
+const mapPublicReviewRow = (r) => ({
+  id: r.id,
+  user: r.user,
+  rating: r.rating,
+  comment: r.content,
+  date: r.created_at,
+  blockchain_hash: r.blockchain_hash,
+  userProfilePicture: r.user_profile_picture_url || null,
+  owner_reply: r.owner_reply || '',
+  owner_replied_at: r.owner_replied_at || null,
+});
+
+const normalizePublicReviewsResponse = (data) => {
+  if (data && Array.isArray(data.results) && typeof data.count === 'number') {
+    return { results: data.results.map(mapPublicReviewRow), count: data.count };
+  }
+  const arr = Array.isArray(data) ? data : [];
+  return { results: arr.map(mapPublicReviewRow), count: arr.length };
+};
+
 function BusinessProfile() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -45,26 +65,6 @@ function BusinessProfile() {
   useEffect(() => {
     setReviewPage(1);
   }, [id]);
-
-  const mapReviewRow = (r) => ({
-    id: r.id,
-    user: r.user,
-    rating: r.rating,
-    comment: r.content,
-    date: r.created_at,
-    blockchain_hash: r.blockchain_hash,
-    userProfilePicture: r.user_profile_picture_url || null,
-    owner_reply: r.owner_reply || '',
-    owner_replied_at: r.owner_replied_at || null,
-  });
-
-  const normalizeReviewsResponse = (data) => {
-    if (data && Array.isArray(data.results) && typeof data.count === 'number') {
-      return { results: data.results.map(mapReviewRow), count: data.count };
-    }
-    const arr = Array.isArray(data) ? data : [];
-    return { results: arr.map(mapReviewRow), count: arr.length };
-  };
 
   const loadBusiness = useCallback(async () => {
     if (!id) return;
@@ -116,7 +116,7 @@ function BusinessProfile() {
     setReviewsLoading(true);
     try {
       const data = await fetchPublicReviews(id, { page: reviewPage, page_size: 10, ordering: '-created_at' });
-      setReviewsPaged(normalizeReviewsResponse(data));
+      setReviewsPaged(normalizePublicReviewsResponse(data));
     } catch (err) {
       console.error('Failed to load reviews:', err);
       setReviewsPaged({ results: [], count: 0 });
@@ -377,7 +377,7 @@ function BusinessProfile() {
                 <div style={styles.sidebarCard}>
                     <h3 style={styles.sectionTitle}>Photo Gallery</h3>
                     <div style={styles.galleryGrid}>
-                        {business.gallery.map((img, index) => <img key={index} src={img} alt={`Gallery image ${index+1}`} style={styles.galleryImage}/>)}
+                        {business.gallery.map((img, index) => <img key={index} src={img} alt={`${business.name} (${index + 1})`} style={styles.galleryImage}/>)}
                     </div>
                 </div>
             </section>

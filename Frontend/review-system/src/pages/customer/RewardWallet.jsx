@@ -10,7 +10,6 @@ import {
   FaWallet,
   FaUniversity,
   FaMobileAlt,
-  FaTimes,
   FaCheckCircle,
   FaCopy,
   FaEthereum,

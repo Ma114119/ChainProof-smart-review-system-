@@ -3,19 +3,17 @@ import { useNavigate } from 'react-router-dom';
 import { fetchMyBusinesses, clearAuthData, fetchMyProfile, updateMyProfile, updateMyProfileWithPicture, changePassword, deleteMyAccount } from '../../services/api';
 import WalletAccountPicker from '../../components/WalletAccountPicker';
 import { requestMetaMaskAccounts, shortenAddress } from '../../utils/walletConnection';
-import { 
-    FaUserEdit, 
-    FaLock, 
-    FaWallet, 
-    FaEnvelope, 
-    FaTimes, 
-    FaCheck, 
-    FaEye, 
+import {
+    FaUserEdit,
+    FaLock,
+    FaEnvelope,
+    FaTimes,
+    FaCheck,
+    FaEye,
     FaEyeSlash,
     FaCamera,
     FaBell,
     FaTrashAlt,
-    FaSignOutAlt,
     FaCheckCircle,
     FaCopy,
     FaShieldAlt,
@@ -92,8 +90,6 @@ function BusinessProfile() {
     walletAddress: '',
     notifications: { newReview: true, reviewFlagged: true, coinRedemption: false },
   });
-  const [errorMessage, setErrorMessage] = useState('');
-
   const [formData, setFormData] = useState({ ...userData });
   const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
   const [profilePictureFile, setProfilePictureFile] = useState(null);
@@ -373,8 +369,7 @@ function BusinessProfile() {
           
           <div style={styles.mainPanel}>
             {successMessage && <div style={styles.successBanner}><FaCheckCircle/> {successMessage}</div>}
-          {errorMessage && <div style={{...styles.successBanner, backgroundColor: '#ef4444'}}>{errorMessage}</div>}
-            
+
             {activeTab === 'profile' && (
               <div>
                 <div style={styles.panelHeader}>

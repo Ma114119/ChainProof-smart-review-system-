@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-    FaBuilding, FaSpinner, FaExclamationTriangle, FaSave, FaTimes, 
-    FaTrashAlt, FaCamera, FaPlus, FaSearch, FaStar, FaEdit, 
+import {
+    FaBuilding, FaSpinner, FaExclamationTriangle, FaSave, FaTimes,
+    FaCamera, FaPlus, FaSearch,
     FaInfoCircle, FaImage
 } from 'react-icons/fa';
 import { fetchMyBusinesses, updateBusiness, createBusinessWithImages, updateBusinessWithImages } from '../../services/api';
@@ -396,11 +395,12 @@ const styles = {
     heroIcon: { fontSize: "3.5rem", color: "var(--hero-text)", marginBottom: "1rem", opacity: 0.9 },
     heroTitle: { fontSize: "2.8rem", fontWeight: "bold", color: "var(--hero-text)", margin: "0 0 0.5rem 0" },
     heroSubtitle: { fontSize: "1.1rem", color: "var(--text-color)", opacity: 0.9, margin: 0 },
-    main: {         maxWidth: "1200px",
+    main: {
+        maxWidth: "1200px",
         margin: "2rem auto",
-        padding: "0 2rem",
         padding: "0 2rem 2rem 2rem",
-        marginBottom: '0rem', },
+        marginBottom: '0rem',
+    },
     mainGrid: { display: 'grid', gridTemplateColumns: '400px 1fr', gap: '2rem', alignItems: 'start' },
     listColumn: { backgroundColor: 'var(--card-bg)', borderRadius: '12px', boxShadow: 'var(--shadow)', padding: '1.5rem', display: 'flex', flexDirection: 'column', alignSelf: 'stretch' },
     formColumn: {},

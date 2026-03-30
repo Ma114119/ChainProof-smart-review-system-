@@ -1,9 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { fetchMyBusinesses, fetchAdminPaymentDetails, fetchMyProfile, ownerRequestBuyCoins, fetchOwnerWalletBalance, fetchOwnerTransactions } from '../../services/api';
-import { 
-  FaCoins, 
-  FaHistory, 
+import { fetchAdminPaymentDetails, fetchMyProfile, ownerRequestBuyCoins, fetchOwnerWalletBalance, fetchOwnerTransactions } from '../../services/api';
+import {
   FaSpinner,
   FaWallet,
   FaUniversity,
@@ -16,7 +13,6 @@ import {
 } from 'react-icons/fa';
 
 function BusinessWallet() {
-  const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);

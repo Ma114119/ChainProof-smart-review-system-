@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchStats } from '../../services/api';
-import { 
-    FaUsers, FaBuilding, FaComments, FaCoins, FaExclamationTriangle, FaTicketAlt, 
+import {
+    FaUsers, FaBuilding, FaComments, FaCoins, FaExclamationTriangle, FaTicketAlt,
     FaSpinner, FaChartLine, FaUserCheck, FaClock, FaSearch,
-    FaBolt, FaServer, FaUserShield, FaHistory, FaCheck, FaBan, FaCog, FaBullhorn, FaMoneyBillWave, FaDownload, FaTimes
+    FaUserShield, FaHistory, FaCheck, FaTimes
 } from 'react-icons/fa';
 import { 
     LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -25,7 +25,6 @@ function AdminDashboard() {
   const [error, setError] = useState('');
   const [timeRange, setTimeRange] = useState('7d');
   const [searchQuery, setSearchQuery] = useState('');
-  const [announcement, setAnnouncement] = useState('');
   /** null = show all three lines; otherwise only that series */
   const [reviewSeriesFilter, setReviewSeriesFilter] = useState(null);
 
@@ -72,7 +71,7 @@ function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  }, [timeRange]);
+  }, []);
 
   useEffect(() => {
     loadDashboard();
@@ -83,16 +82,6 @@ function AdminDashboard() {
     console.log('Searching for:', searchQuery);
   };
   
-  const handlePublishAnnouncement = () => {
-      if(!announcement.trim()) {
-          alert("Announcement text cannot be empty.");
-          return;
-      }
-      console.log("Publishing announcement:", announcement);
-      alert(`Announcement Published: "${announcement}"`);
-      setAnnouncement('');
-  };
-
   const handlePendingBusinessAction = (businessId, action) => {
       console.log(`Action: ${action} on business ID: ${businessId}`);
       // In a real app, this would be an API call. For now, we just remove it from the list.

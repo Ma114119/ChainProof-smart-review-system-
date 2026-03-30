@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaChevronDown, FaGavel, FaFileSignature } from 'react-icons/fa';
+import { FaChevronDown, FaFileSignature } from 'react-icons/fa';
 
 // Collapsible Section Component
 const Section = ({ section, index, toggleSection }) => {
@@ -169,13 +169,14 @@ function TermsAndConditions() {
             <ul style={styles.tocList}>
               {sections.map((section, index) => (
                 <li key={index} style={styles.tocItem}>
-                  <a 
-                    onClick={() => scrollToSection(`section-${index}`)} 
-                    style={sections[index].open ? {...styles.tocLink, ...styles.tocLinkActive} : styles.tocLink} 
+                  <button
+                    type="button"
+                    onClick={() => scrollToSection(`section-${index}`)}
+                    style={sections[index].open ? {...styles.tocLink, ...styles.tocLinkActive} : styles.tocLink}
                     className="toc-link-hover"
                   >
                     {section.title}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -269,6 +270,11 @@ const styles = {
     transition: 'all 0.2s ease-in-out',
     display: 'block',
     padding: '0.25rem 0',
+    border: 'none',
+    background: 'none',
+    font: 'inherit',
+    width: '100%',
+    textAlign: 'left',
   },
   tocLinkActive: {
     color: 'var(--button-bg)',

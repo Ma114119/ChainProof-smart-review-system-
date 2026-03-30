@@ -53,8 +53,32 @@ const ReviewDetailModal = ({ review, onClose, onReply }) => {
                     </form>
                 </div>
             </div>
-        </div>
-    );
+    </div>
+  );
+};
+
+const mapOwnerReviewRow = (r, businessId) => ({
+  id: r.id,
+  businessId,
+  user: r.user,
+  rating: r.rating,
+  comment: r.content,
+  date: r.created_at,
+  likes: 0,
+  liked: false,
+  owner_reply: r.owner_reply || '',
+  reply: r.owner_reply || '',
+  blockchain_hash: r.blockchain_hash,
+  status: r.status,
+  ai: { qualityScore: r.status === 'Flagged' ? 35 : 90, issues: r.status === 'Flagged' ? ['AI-flagged spam'] : [] },
+});
+
+const normalizeOwnerListResponse = (data, businessId) => {
+  if (data && Array.isArray(data.results) && typeof data.count === 'number') {
+    return { results: data.results.map((row) => mapOwnerReviewRow(row, businessId)), count: data.count };
+  }
+  const arr = Array.isArray(data) ? data : [];
+  return { results: arr.map((row) => mapOwnerReviewRow(row, businessId)), count: arr.length };
 };
 
 function ReviewsFeedback() {
@@ -83,30 +107,6 @@ function ReviewsFeedback() {
   useEffect(() => {
     setReviewPage(1);
   }, [selectedBusinessId, debouncedSearch, filterRating, sortBy]);
-
-  const mapReview = (r, businessId) => ({
-    id: r.id,
-    businessId,
-    user: r.user,
-    rating: r.rating,
-    comment: r.content,
-    date: r.created_at,
-    likes: 0,
-    liked: false,
-    owner_reply: r.owner_reply || '',
-    reply: r.owner_reply || '',
-    blockchain_hash: r.blockchain_hash,
-    status: r.status,
-    ai: { qualityScore: r.status === 'Flagged' ? 35 : 90, issues: r.status === 'Flagged' ? ['AI-flagged spam'] : [] },
-  });
-
-  const normalizeListResponse = (data, businessId) => {
-    if (data && Array.isArray(data.results) && typeof data.count === 'number') {
-      return { results: data.results.map((row) => mapReview(row, businessId)), count: data.count };
-    }
-    const arr = Array.isArray(data) ? data : [];
-    return { results: arr.map((row) => mapReview(row, businessId)), count: arr.length };
-  };
 
   const fetchBizList = useCallback(async () => {
     setLoading(true);
@@ -166,7 +166,7 @@ function ReviewsFeedback() {
         min_rating: minR,
         ordering: orderingForSort(sortBy),
       });
-      setPaged(normalizeListResponse(data, selectedBusinessId));
+      setPaged(normalizeOwnerListResponse(data, selectedBusinessId));
     } catch {
       setPaged({ results: [], count: 0 });
     } finally {
@@ -390,9 +390,8 @@ const styles = {
     main: {
         maxWidth: "1200px",
         margin: "2rem auto",
-        padding: "0 2rem",
-        marginBottom: '0rem',
         padding: "0 2rem 2rem 2rem",
+        marginBottom: '0rem',
     },
     businessFilters: {
         display: 'flex',

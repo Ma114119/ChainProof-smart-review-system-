@@ -71,15 +71,11 @@ function BusinessDashboard() {
 
     // NEW: State for wallet and notifications
     const [wallet, setWallet] = useState({ isConnected: false, address: '' });
-    const [walletConnectedOnce, setWalletConnectedOnce] = useState(false);
+    const [, setWalletConnectedOnce] = useState(false);
     const [isConnectingWallet, setIsConnectingWallet] = useState(false);
     const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
     const [accountsToPick, setAccountsToPick] = useState(null);
     const [unreadSupportCount, setUnreadSupportCount] = useState(0);
-
-    useEffect(() => {
-        fetchData();
-    }, []);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -139,6 +135,10 @@ function BusinessDashboard() {
             setLoading(false);
         }
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const showNotification = (message, type = 'success') => {
         setNotification({ show: true, message, type });
@@ -472,7 +472,12 @@ const styles = {
         fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1
     },
     // --- All other styles from your original code ---
-    main: {maxWidth: "1200px",margin: "2rem auto",padding: "0 2rem",padding: "0 2rem 2rem 2rem",marginBottom: '0rem', },
+    main: {
+        maxWidth: "1200px",
+        margin: "2rem auto",
+        padding: "0 2rem 2rem 2rem",
+        marginBottom: '0rem',
+    },
     statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem', },
     statCard: { backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', boxShadow: 'var(--shadow)', display: 'flex', alignItems: 'center', gap: '1rem', },
     statIcon: { color: 'var(--button-bg)', fontSize: '2rem', backgroundColor: 'var(--hero-bg)', padding: '0.8rem', borderRadius: '50%', },

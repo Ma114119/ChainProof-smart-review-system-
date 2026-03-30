@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { fetchAdminReviews, updateReviewStatus, deleteAdminReview } from '../../services/api';
-import { 
-    FaComments, FaSpinner, FaExclamationTriangle, FaSearch, FaTimes, FaCheck, 
-    FaShieldAlt, FaStar, 
-    FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaUserShield, FaBrain, FaInfoCircle
+import { fetchAdminReviews, updateReviewStatus } from '../../services/api';
+import {
+    FaSpinner, FaSearch, FaTimes, FaCheck,
+    FaShieldAlt, FaStar,
+    FaChevronLeft, FaChevronRight, FaExternalLinkAlt, FaBrain, FaInfoCircle
 } from 'react-icons/fa';
 
 // =================================================================
@@ -55,8 +54,16 @@ const ReviewCard = ({ review, isSelected, isExpanded, onToggleSelect, onExpand, 
                     
                     {/* Integrity Block */}
                     <h4 style={{...styles.subTitle, marginTop: '1.5rem'}}><FaShieldAlt/> Integrity & Proof</h4>
-                    <div style={styles.integrityProof}><strong>Tx Hash:</strong> <a href="#" style={styles.link}>{review.integrity.txHash.substring(0, 20)}... <FaExternalLinkAlt size="0.7em"/></a></div>
-                    <div style={styles.integrityProof}><strong>IPFS CID:</strong> <a href="#" style={styles.link}>{review.integrity.ipfsCid.substring(0, 20)}... <FaExternalLinkAlt size="0.7em"/></a></div>
+                    <div style={styles.integrityProof}><strong>Tx Hash:</strong>{' '}
+                        <button type="button" style={styles.linkButton} title="Explorer link not configured">
+                            {review.integrity.txHash.substring(0, 20)}... <FaExternalLinkAlt size="0.7em"/>
+                        </button>
+                    </div>
+                    <div style={styles.integrityProof}><strong>IPFS CID:</strong>{' '}
+                        <button type="button" style={styles.linkButton} title="Gateway link not configured">
+                            {review.integrity.ipfsCid.substring(0, 20)}... <FaExternalLinkAlt size="0.7em"/>
+                        </button>
+                    </div>
 
                     {/* Actions */}
                     <h4 style={{...styles.subTitle, marginTop: '1.5rem'}}>Moderation Actions</h4>
@@ -77,7 +84,6 @@ const ReviewCard = ({ review, isSelected, isExpanded, onToggleSelect, onExpand, 
 function ReviewModeration() {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
     const [activeQueue, setActiveQueue] = useState('AI-Flagged');
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedReviews, setSelectedReviews] = useState([]);
@@ -105,27 +111,26 @@ function ReviewModeration() {
         };
     };
 
+    const showNotification = useCallback((message, type = 'success') => {
+        setNotification({ message, type });
+        setTimeout(() => setNotification(null), 5000);
+    }, []);
+
     const fetchData = useCallback(async () => {
         setLoading(true);
-        setError('');
         try {
             const data = await fetchAdminReviews();
             setReviews((data || []).map(normalizeReview));
         } catch (err) {
-            setError('Failed to load reviews.');
+            showNotification('Failed to load reviews.', 'error');
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [showNotification]);
 
     useEffect(() => {
         fetchData();
     }, [fetchData]);
-
-    const showNotification = (message, type = 'success') => {
-        setNotification({ message, type });
-        setTimeout(() => setNotification(null), 5000);
-    };
 
     const handleModerationAction = async (reviewIds, action) => {
         const backendStatus = action === 'AI-Flagged' ? 'Flagged' : action;
@@ -244,11 +249,12 @@ const styles = {
     heroContent: { maxWidth: "1200px", margin: "0 auto" },
     heroTitle: { fontSize: "2.8rem", fontWeight: "bold", color: "var(--hero-text)", margin: "0 0 0.5rem 0" },
     heroSubtitle: { fontSize: "1.1rem", color: "var(--text-color)", opacity: 0.9, margin: 0 },
-    main: {         maxWidth: "1200px",
+    main: {
+        maxWidth: "1200px",
         margin: "2rem auto",
-        padding: "0 2rem",
         padding: "0 2rem 2rem 2rem",
-        marginBottom: '0rem', },
+        marginBottom: '0rem',
+    },
     
     // --- Review List ---
     reviewListContainer: { backgroundColor: 'var(--card-bg)', borderRadius: '12px', boxShadow: 'var(--shadow)', padding: '2rem' },
@@ -283,6 +289,16 @@ const styles = {
     moderationActions: { display: 'flex', gap: '1rem' },
     actionButton: { padding: '0.5rem 1rem', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '0.5rem' },
     link: { color: 'var(--button-bg)', textDecoration: 'none', fontSize: '0.9rem' },
+    linkButton: {
+        color: 'var(--button-bg)',
+        fontSize: '0.9rem',
+        background: 'none',
+        border: 'none',
+        padding: 0,
+        cursor: 'pointer',
+        textDecoration: 'underline',
+        font: 'inherit',
+    },
     
     // --- Status Badges & Pagination ---
     statusBadge: { padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 'bold' },
