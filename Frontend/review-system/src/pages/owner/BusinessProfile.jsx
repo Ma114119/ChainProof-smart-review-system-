@@ -260,7 +260,9 @@ function BusinessProfile() {
   };
 
   const handleDeleteAccount = async () => {
-    if (window.confirm("Are you sure you want to delete your account? This action is irreversible.")) {
+    if (window.confirm(
+      "Delete your account? Your reviews stay visible. Businesses you own remain on the site without an owner until an admin assigns someone new. You will not be able to sign in again."
+    )) {
       try {
         await deleteMyAccount();
       } catch (err) {

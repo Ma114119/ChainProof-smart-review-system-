@@ -325,7 +325,14 @@ const BusinessForm = ({ business, onSave, onCancel, isEditing, onStatusToggle })
                                     onChange={handleChange} 
                                     style={styles.input} 
                                     className="input-focus" 
+                                    readOnly={formData.needsOwnerAssignment}
+                                    title={formData.needsOwnerAssignment ? 'Assign an owner with Transfer' : undefined}
                                 />
+                                {formData.needsOwnerAssignment && (
+                                    <p style={{ margin: '0.35rem 0 0', fontSize: '0.85rem', color: '#f97316' }}>
+                                        No owner on file — use Transfer in the list to assign a new owner (owner account was removed).
+                                    </p>
+                                )}
                             </div>
                         </div>
                         
@@ -457,7 +464,8 @@ function AdminBusinessManagement() {
         location: b.address,
         contactNumber: b.phone_number,
         ownerId: b.owner_id,
-        ownerEmail: b.owner_email,
+        ownerEmail: b.owner_email ?? '',
+        needsOwnerAssignment: Boolean(b.needs_owner_assignment),
         website: b.website_url,
         establishmentYear: b.establishment_year,
         status: b.status,
@@ -504,7 +512,10 @@ function AdminBusinessManagement() {
     };
 
     const sendEmailToOwner = (email) => {
-        // In a real app, this would open an email client or trigger an API call
+        if (!email) {
+            showToast('No owner on file — use Transfer to assign an owner.', 'error');
+            return;
+        }
         window.open(`mailto:${email}?subject=Regarding Your Business`, '_blank');
         showToast(`Email composer opened for ${email}`);
     };
@@ -558,10 +569,10 @@ function AdminBusinessManagement() {
             await transferBusinessOwner(businessToTransfer.id, newOwnerId);
             const newOwner = owners.find(o => o.id === newOwnerId);
             setBusinesses(businesses.map(b =>
-                b.id === businessToTransfer.id ? { ...b, ownerEmail: newOwner?.email, ownerId: newOwnerId } : b
+                b.id === businessToTransfer.id ? { ...b, ownerEmail: newOwner?.email || '', ownerId: newOwnerId, needsOwnerAssignment: false } : b
             ));
             if (editingBusiness?.id === businessToTransfer.id) {
-                setEditingBusiness(prev => ({ ...prev, ownerEmail: newOwner?.email, ownerId: newOwnerId }));
+                setEditingBusiness(prev => ({ ...prev, ownerEmail: newOwner?.email || '', ownerId: newOwnerId, needsOwnerAssignment: false }));
             }
             showToast(`Business transferred to ${newOwner?.username}`);
             setShowTransferModal(false);
@@ -686,6 +697,7 @@ function AdminBusinessManagement() {
     const analytics = useMemo(() => {
         const activeCount = businesses.filter(b => b.status === 'Active').length;
         const inactiveCount = businesses.length - activeCount;
+        const orphanCount = businesses.filter(b => b.needsOwnerAssignment).length;
         const avgRating = businesses.length > 0 
             ? (businesses.reduce((sum, b) => sum + b.avgRating, 0) / businesses.length)
             : 0;
@@ -694,6 +706,7 @@ function AdminBusinessManagement() {
             total: businesses.length,
             active: activeCount,
             inactive: inactiveCount,
+            orphanCount,
             avgRating: avgRating.toFixed(1)
         };
     }, [businesses]);
@@ -770,7 +783,23 @@ function AdminBusinessManagement() {
                             {analytics.avgRating}
                         </div>
                     </div>
+                    {analytics.orphanCount > 0 && (
+                    <div style={{...styles.analyticsTile, border: '2px solid #f97316', backgroundColor: 'rgba(249, 115, 22, 0.08)'}}>
+                        <h3 style={styles.analyticsTitle}>Needs owner</h3>
+                        <div style={{...styles.analyticsValue, color: '#f97316'}}>{analytics.orphanCount}</div>
+                    </div>
+                    )}
                 </div>
+
+                {analytics.orphanCount > 0 && (
+                    <div style={styles.orphanBanner} role="status">
+                        <FaExclamationTriangle style={{ flexShrink: 0, marginTop: '0.15rem' }} />
+                        <div>
+                            <strong>Owner deleted — action needed.</strong>{' '}
+                            {analytics.orphanCount} business(es) have no owner (previous owner removed their account). Reviews and listings stay on the site. Use <strong>Transfer</strong> on each row to assign a new owner.
+                        </div>
+                    </div>
+                )}
                 
                 {editingBusiness && (
                     <div id="business-form">
@@ -887,7 +916,7 @@ function AdminBusinessManagement() {
                         
                         {currentBusinesses.length > 0 ? (
                             currentBusinesses.map(biz => (
-                                <div key={biz.id} style={{...styles.tableRow, ...styles.tableRowResponsive}}>
+                                <div key={biz.id} style={{...styles.tableRow, ...styles.tableRowResponsive, ...(biz.needsOwnerAssignment ? styles.tableRowOrphan : {})}}>
                                     <div style={{flex: 0.5}}>
                                         <input 
                                             type="checkbox" 
@@ -896,14 +925,23 @@ function AdminBusinessManagement() {
                                             aria-label={`Select ${biz.name}`}
                                         />
                                     </div>
-                                    <div style={{flex: 3, fontWeight: '600'}}>{biz.name}</div>
+                                    <div style={{flex: 3, fontWeight: '600'}}>
+                                        {biz.name}
+                                        {biz.needsOwnerAssignment && (
+                                            <span style={styles.orphanBadge}>No owner</span>
+                                        )}
+                                    </div>
                                     <div style={{flex: 2}}>
+                                        {biz.needsOwnerAssignment ? (
+                                            <span style={{ fontSize: '0.9rem', opacity: 0.85 }}>— assign via Transfer</span>
+                                        ) : (
                                         <button 
                                             onClick={() => sendEmailToOwner(biz.ownerEmail)}
                                             style={{...styles.actionButton, padding: '0.3rem 0.5rem'}}
                                         >
                                             <FaEnvelope/> {biz.ownerEmail}
                                         </button>
+                                        )}
                                     </div>
                                     <div style={{flex: 1}}>
                                         <span style={{...styles.statusBadge, ...(biz.status === 'Active' ? styles.activeStatus : styles.inactiveStatus)}}>
@@ -1166,6 +1204,33 @@ const styles = {
             alignItems: 'flex-start',
             padding: '1.5rem'
         }
+    },
+    tableRowOrphan: {
+        backgroundColor: 'rgba(249, 115, 22, 0.06)',
+        borderLeft: '3px solid #f97316',
+    },
+    orphanBanner: {
+        display: 'flex',
+        gap: '1rem',
+        alignItems: 'flex-start',
+        padding: '1rem 1.25rem',
+        marginBottom: '1.25rem',
+        borderRadius: '10px',
+        border: '1px solid rgba(249, 115, 22, 0.45)',
+        backgroundColor: 'rgba(249, 115, 22, 0.08)',
+        color: 'var(--text-color)',
+        fontSize: '0.95rem',
+        lineHeight: 1.5,
+    },
+    orphanBadge: {
+        marginLeft: '0.5rem',
+        padding: '0.15rem 0.5rem',
+        borderRadius: '6px',
+        fontSize: '0.75rem',
+        fontWeight: 600,
+        backgroundColor: 'rgba(249, 115, 22, 0.2)',
+        color: '#ea580c',
+        verticalAlign: 'middle',
     },
     statusBadge: { 
         padding: '0.3rem 0.8rem', 

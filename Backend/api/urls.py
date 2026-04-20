@@ -10,7 +10,7 @@ from .views import (
     get_ai_suggestion, get_stats,
     change_password, delete_account, my_bookmarks, add_bookmark, remove_bookmark,
     get_admin_wallet, set_admin_wallet,
-    transfer_business_ownership,
+    transfer_business_ownership, admin_platform_policies,
     get_financials, update_exchange_rate, admin_transfer_coins,
     get_admin_payment_details, save_admin_payment_details,
     owner_request_buy_coins, get_owner_wallet_balance, get_owner_transactions, customer_request_sell_coins,
@@ -65,6 +65,7 @@ urlpatterns = [
 
     # Admin: transfer business ownership
     path('admin/businesses/<int:business_id>/transfer-owner/', transfer_business_ownership, name='transfer-business-owner'),
+    path('admin/platform-policies/', admin_platform_policies, name='admin-platform-policies'),
 
     # Admin wallet
     path('admin-wallet/', get_admin_wallet, name='get-admin-wallet'),

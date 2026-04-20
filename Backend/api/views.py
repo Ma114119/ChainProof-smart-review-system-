@@ -253,9 +253,8 @@ def change_password(request):
 @api_view(['DELETE'])
 @permission_classes([permissions.IsAuthenticated])
 def delete_account(request):
-    """Allow authenticated user to permanently delete their own account."""
-    user = request.user
-    user.delete()
+    """Soft-delete: reviews and businesses stay; owner businesses become unassigned."""
+    request.user.soft_delete()
     return Response({'detail': 'Account deleted successfully.'}, status=status.HTTP_204_NO_CONTENT)
 
 
@@ -1127,7 +1126,10 @@ def business_review_stats(request, business_id):
 def owner_reply_to_review(request, business_id, review_id):
     review = get_object_or_404(Review, pk=review_id, business_id=business_id)
     business = review.business
-    if business.owner_id != request.user.id and not is_admin(request.user):
+    if business.owner_id is None:
+        if not is_admin(request.user):
+            raise PermissionDenied('This business has no owner assigned. Only an admin can reply until a new owner is assigned.')
+    elif business.owner_id != request.user.id and not is_admin(request.user):
         raise PermissionDenied('Only the business owner can reply to reviews.')
     text = (request.data.get('owner_reply') or '').strip()
     if len(text) > 8000:
@@ -1157,7 +1159,7 @@ class AdminUserListView(generics.ListAPIView):
     def get_queryset(self):
         if not is_admin(self.request.user):
             return CustomUser.objects.none()
-        qs = CustomUser.objects.all().order_by('-date_joined')
+        qs = CustomUser.objects.filter(is_deleted=False).order_by('-date_joined')
         search = self.request.query_params.get('search', '')
         role = self.request.query_params.get('role', '')
         if search:
@@ -1170,12 +1172,19 @@ class AdminUserListView(generics.ListAPIView):
 class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserDetailSerializer
     permission_classes = [permissions.IsAuthenticated]
-    queryset = CustomUser.objects.all()
+
+    def get_queryset(self):
+        if not is_admin(self.request.user):
+            return CustomUser.objects.none()
+        return CustomUser.objects.filter(is_deleted=False)
 
     def get_object(self):
         if not is_admin(self.request.user):
             raise PermissionDenied("Admin access required.")
         return super().get_object()
+
+    def perform_destroy(self, instance):
+        instance.soft_delete()
 
 
 # ================================================================
@@ -1226,15 +1235,39 @@ def transfer_business_ownership(request, business_id):
     except Business.DoesNotExist:
         return Response({'detail': 'Business not found.'}, status=status.HTTP_404_NOT_FOUND)
     try:
-        new_owner = CustomUser.objects.get(id=new_owner_id, role='owner')
+        new_owner = CustomUser.objects.get(id=new_owner_id, role='owner', is_deleted=False)
     except CustomUser.DoesNotExist:
-        return Response({'detail': 'New owner must be a user with role Owner.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'New owner must be an active user with role Owner.'}, status=status.HTTP_400_BAD_REQUEST)
     business.owner = new_owner
     business.save()
     return Response({
         'detail': f'Business "{business.name}" transferred to {new_owner.username} ({new_owner.email}).',
         'owner': new_owner.username,
         'owner_email': new_owner.email,
+    })
+
+
+# ================================================================
+# ADMIN: PLATFORM POLICIES (CMS — SystemSettings)
+# ================================================================
+@api_view(['GET', 'PATCH'])
+@permission_classes([permissions.IsAuthenticated])
+def admin_platform_policies(request):
+    if not is_admin(request.user):
+        raise PermissionDenied('Admin access required.')
+    keys = {
+        'terms': 'cms_terms',
+        'privacy': 'cms_privacy',
+        'reward_rules': 'cms_reward_rules',
+    }
+    if request.method == 'GET':
+        return Response({k: SystemSettings.get(v, '') for k, v in keys.items()})
+    for k, sys_key in keys.items():
+        if k in request.data:
+            SystemSettings.set(sys_key, str(request.data[k] or ''))
+    return Response({
+        'detail': 'Policies saved.',
+        **{k: SystemSettings.get(v, '') for k, v in keys.items()},
     })
 
 
@@ -1252,8 +1285,8 @@ def get_stats(request):
         user_growth = []
         for i in range(6, -1, -1):
             d = today - timezone.timedelta(days=i)
-            customers = CustomUser.objects.filter(role='customer', date_joined__date=d).count()
-            owners = CustomUser.objects.filter(role='owner', date_joined__date=d).count()
+            customers = CustomUser.objects.filter(role='customer', is_deleted=False, date_joined__date=d).count()
+            owners = CustomUser.objects.filter(role='owner', is_deleted=False, date_joined__date=d).count()
             user_growth.append({
                 'date': d.isoformat(),
                 'label': d.strftime('%b %d'),
@@ -1280,8 +1313,8 @@ def get_stats(request):
         processed_payouts = CustomerPayoutRequest.objects.filter(status='Completed').count()
         data = {
             'totalUsers': {
-                'customers': CustomUser.objects.filter(role='customer').count(),
-                'owners': CustomUser.objects.filter(role='owner').count(),
+                'customers': CustomUser.objects.filter(role='customer', is_deleted=False).count(),
+                'owners': CustomUser.objects.filter(role='owner', is_deleted=False).count(),
             },
             'businessStats': {
                 'active': Business.objects.filter(status='Active').count(),

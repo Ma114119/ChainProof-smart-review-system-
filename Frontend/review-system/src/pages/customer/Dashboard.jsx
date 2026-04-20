@@ -493,9 +493,9 @@ const styles = {
     },
     statIcon: {
         color: 'var(--button-bg)',
-        fontSize: '2rem',
+        fontSize: '2.4rem',
         backgroundColor: 'var(--hero-bg)',
-        padding: '0.8rem',
+        padding: '1rem',
         borderRadius: '50%',
     },
     statValue: {

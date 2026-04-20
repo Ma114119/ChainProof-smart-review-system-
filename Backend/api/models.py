@@ -16,6 +16,25 @@ class CustomUser(AbstractUser):
     phone = models.CharField(max_length=20, blank=True, default='')
     bonus_coins = models.IntegerField(default=0)  # Admin-credited coins for testing/demos
 
+    is_deleted = models.BooleanField(default=False, db_index=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    def soft_delete(self):
+        """Deactivate account; keep row for reviews/FKs; detach owned businesses."""
+        from django.utils import timezone
+
+        self.is_deleted = True
+        self.deleted_at = timezone.now()
+        self.is_active = False
+        self.set_unusable_password()
+        uid = self.pk
+        self.email = f'deleted_{uid}@deleted.local'
+        self.username = f'deleted_user_{uid}'
+        self.cnic = None
+        self.save()
+        if self.role == 'owner':
+            Business.objects.filter(owner_id=uid).update(owner=None)
+
 
 # --- PendingUser (OTP verification - stores registration data until email verified) ---
 class PendingUser(models.Model):
@@ -63,7 +82,7 @@ class SystemSettings(models.Model):
 
 # --- Business Model ---
 class Business(models.Model):
-    owner = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='businesses')
+    owner = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='businesses')
     name = models.CharField(max_length=150)
     description = models.TextField()
     category = models.CharField(max_length=50)

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* =================================================================
    ChainProof — global layout (mobile-first) + responsive navbar + register
    ================================================================= */

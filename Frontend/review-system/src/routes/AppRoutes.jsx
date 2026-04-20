@@ -1,5 +1,5 @@
 // =================================================================
-// FILE: src/routes/AppRoutes.js (SIMPLIFIED)
+// FILE: src/routes/AppRoutes.jsx — admin Analytics + Settings
 // =================================================================
 // The routes are now set up in a simple, direct way without protection,
 // which is ideal for frontend development before backend logic is added.
@@ -43,8 +43,8 @@ import BusinessManagement from "../pages/admin/BusinessManagement";
 import ReviewModeration from "../pages/admin/ReviewModeration";
 import FinancialTransactions from "../pages/admin/FinancialTransactions";
 import AdminInbox from "../pages/admin/Inbox";
-import SiteSettings from "../pages/admin/SiteSettings";
-import AnalyticsReports from "../pages/admin/AnalyticsReports";
+import Settings from "../pages/admin/Settings";
+import Analytics from "../pages/admin/Analytics";
 
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -110,8 +110,10 @@ function AppRoutes() {
           <Route path="/admin/reviews" element={<ReviewModeration />} />
           <Route path="/admin/financials" element={<FinancialTransactions />} />
           <Route path="/admin/inbox" element={<AdminInbox />} />
-          <Route path="/admin/settings" element={<SiteSettings />} />
-          <Route path="/admin/analytics" element={<AnalyticsReports />} />
+          <Route path="/admin/settings" element={<Settings />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
+          <Route path="/admin/site-settings" element={<Settings />} />
+          <Route path="/admin/analytics-reports" element={<Analytics />} />
         </Route>
       </Routes>
         </main>

@@ -63,6 +63,7 @@ const FinancialDashboard = () => {
     const [selectedPayoutId, setSelectedPayoutId] = useState(null);
     const [selectedPurchaseId, setSelectedPurchaseId] = useState(null);
     const [showExchangeModal, setShowExchangeModal] = useState(false);
+    const [proofPreviewUrl, setProofPreviewUrl] = useState('');
     const [newExchangeRate, setNewExchangeRate] = useState('');
     const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
     const [loading, setLoading] = useState(true);
@@ -428,8 +429,12 @@ const FinancialDashboard = () => {
                                                 {req.paymentProofUrl && (
                                                     <div style={{marginTop: '1rem'}}>
                                                         <h4 style={styles.detailTitle}>Payment Proof Screenshot</h4>
-                                                        <a href={req.paymentProofUrl} target="_blank" rel="noopener noreferrer" style={{color: 'var(--button-bg)', marginBottom: '0.5rem', display: 'inline-block'}}>Open in new tab</a>
-                                                        <img src={req.paymentProofUrl} alt="Payment proof" style={{maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', border: '1px solid var(--card-border)'}} />
+                                                        <img
+                                                            src={req.paymentProofUrl}
+                                                            alt="Payment proof"
+                                                            style={styles.paymentProofImage}
+                                                            onClick={() => setProofPreviewUrl(req.paymentProofUrl)}
+                                                        />
                                                     </div>
                                                 )}
                                             </div>
@@ -505,6 +510,12 @@ const FinancialDashboard = () => {
                         </div>
                     </div>
                 )}
+
+                {proofPreviewUrl && (
+                    <div style={styles.imagePreviewOverlay} onClick={() => setProofPreviewUrl('')}>
+                        <img src={proofPreviewUrl} alt="Payment proof preview" style={styles.imagePreview} onClick={(e) => e.stopPropagation()} />
+                    </div>
+                )}
             </main>
         </div>
     );
@@ -567,6 +578,7 @@ const styles = {
     expandedRow: { backgroundColor: 'rgba(0,0,0,0.02)' },
     detailTitle: { margin: '0 0 1rem 0', color: 'var(--header-text)' },
     detailGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem 1rem', marginBottom: '1.5rem', fontSize: '0.9rem' },
+    paymentProofImage: { maxWidth: '100%', maxHeight: '230px', borderRadius: '8px', border: '1px solid var(--card-border)', cursor: 'zoom-in' },
     payoutValueBox: { backgroundColor: 'var(--bg-color)', border: '1px solid var(--card-border)', borderRadius: '8px', padding: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
     detailActions: { display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' },
     
@@ -586,6 +598,8 @@ const styles = {
     modalContent: { padding: '0 1rem 1rem 1rem' },
     modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '1rem', padding: '1.5rem 1rem 1rem 1rem', borderTop: '1px solid var(--card-border)' },
     modalInfo: { marginTop: '1rem', opacity: 0.7, fontSize: '0.9rem', backgroundColor: 'var(--bg-color)', padding: '0.75rem', borderRadius: '6px' },
+    imagePreviewOverlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0, 0, 0, 0.72)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1300, padding: '1.5rem' },
+    imagePreview: { maxWidth: '92vw', maxHeight: '88vh', borderRadius: '12px', border: '1px solid var(--card-border)', boxShadow: '0 20px 45px rgba(0, 0, 0, 0.45)' },
     loader: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh', gap: '1rem', fontSize: '1.2rem', color: 'var(--text-color)' },
     notification: { position: 'fixed', top: '1.5rem', left: '50%', transform: 'translateX(-50%)', padding: '1rem 1.5rem', borderRadius: '8px', color: 'white', display: 'flex', alignItems: 'center', zIndex: 1000, boxShadow: '0 5px 15px rgba(0,0,0,0.2)', fontSize: '0.95rem', minWidth: '350px' },
     notificationSuccess: { backgroundColor: '#10B981' },

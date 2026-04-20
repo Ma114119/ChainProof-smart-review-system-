@@ -363,6 +363,14 @@ export const setAdminWallet = (walletAddress) =>
     body: JSON.stringify({ wallet_address: walletAddress }),
   });
 
+export const fetchPlatformPolicies = () => apiFetch('/api/admin/platform-policies/');
+
+export const savePlatformPolicies = (data) =>
+  apiFetch('/api/admin/platform-policies/', {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+
 // =================================================================
 // ADMIN FINANCIALS
 // =================================================================

@@ -296,6 +296,7 @@ function WriteReview() {
                                 role="option"
                                 aria-selected={String(b.id) === selectedBusinessId}
                                 onClick={() => selectBusinessFromList(b)}
+                                className={`write-review-biz-opt${String(b.id) === selectedBusinessId ? ' write-review-biz-opt--active' : ''}`}
                                 style={{
                                   ...styles.businessOption,
                                   ...(String(b.id) === selectedBusinessId ? styles.businessOptionActive : {}),
@@ -452,6 +453,24 @@ const hoverStyles = `
         color: white;
         border-color: #EF4444;
         box-shadow: 0 0 10px #EF4444;
+    }
+    .write-review-biz-opt {
+        background-color: var(--bg-color) !important;
+        color: var(--text-color) !important;
+    }
+    .write-review-biz-opt:hover:not(.write-review-biz-opt--active) {
+        background-color: var(--hero-bg) !important;
+    }
+    .write-review-biz-opt--active {
+        background-color: rgba(59, 130, 246, 0.18) !important;
+        box-shadow: inset 3px 0 0 var(--button-bg);
+    }
+    .write-review-biz-opt:focus {
+        outline: none !important;
+    }
+    .write-review-biz-opt:focus-visible {
+        outline: 2px solid var(--button-bg) !important;
+        outline-offset: -2px;
     }
 `;
 

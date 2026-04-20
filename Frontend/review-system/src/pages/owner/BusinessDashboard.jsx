@@ -480,7 +480,7 @@ const styles = {
     },
     statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem', },
     statCard: { backgroundColor: 'var(--card-bg)', padding: '1.5rem', borderRadius: '12px', boxShadow: 'var(--shadow)', display: 'flex', alignItems: 'center', gap: '1rem', },
-    statIcon: { color: 'var(--button-bg)', fontSize: '2rem', backgroundColor: 'var(--hero-bg)', padding: '0.8rem', borderRadius: '50%', },
+    statIcon: { color: 'var(--button-bg)', fontSize: '2.4rem', backgroundColor: 'var(--hero-bg)', padding: '1rem', borderRadius: '50%', },
     statValue: { fontSize: '1.5rem', fontWeight: 'bold', margin: 0, },
     statTitle: { fontSize: '0.9rem', opacity: 0.8, margin: 0, },
     chartContainer: { backgroundColor: 'var(--card-bg)', borderRadius: '12px', boxShadow: 'var(--shadow)', padding: '2rem', marginBottom: '2.5rem', },

@@ -14,6 +14,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         except CustomUser.DoesNotExist:
             pass
         data = super().validate(attrs)
+        if getattr(self.user, 'is_deleted', False):
+            raise serializers.ValidationError({'detail': 'This account has been deleted.'})
         # Django superusers always get 'admin' role regardless of DB role field
         data['role'] = 'admin' if (self.user.is_superuser or self.user.role == 'admin') else self.user.role
         data['user_id'] = self.user.id
@@ -94,9 +96,10 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
 # --- Business Serializer ---
 class BusinessSerializer(serializers.ModelSerializer):
-    owner = serializers.ReadOnlyField(source='owner.username')
-    owner_id = serializers.ReadOnlyField(source='owner.id')
-    owner_email = serializers.ReadOnlyField(source='owner.email')
+    owner = serializers.SerializerMethodField()
+    owner_id = serializers.SerializerMethodField()
+    owner_email = serializers.SerializerMethodField()
+    needs_owner_assignment = serializers.SerializerMethodField()
     avg_rating = serializers.SerializerMethodField()
     total_reviews = serializers.SerializerMethodField()
     rating_breakdown = serializers.SerializerMethodField()
@@ -107,7 +110,7 @@ class BusinessSerializer(serializers.ModelSerializer):
     class Meta:
         model = Business
         fields = [
-            'id', 'owner', 'owner_id', 'owner_email', 'name', 'description', 'category',
+            'id', 'owner', 'owner_id', 'owner_email', 'needs_owner_assignment', 'name', 'description', 'category',
             'address', 'phone_number', 'email', 'website_url', 'establishment_year',
             'status', 'created_at', 'avg_rating', 'total_reviews', 'rating_breakdown',
             'profile_picture', 'cover_image',
@@ -122,6 +125,18 @@ class BusinessSerializer(serializers.ModelSerializer):
             'gallery_image_3': {'required': False, 'write_only': True},
             'gallery_image_4': {'required': False, 'write_only': True},
         }
+
+    def get_owner(self, obj):
+        return obj.owner.username if obj.owner_id else None
+
+    def get_owner_id(self, obj):
+        return obj.owner_id
+
+    def get_owner_email(self, obj):
+        return obj.owner.email if obj.owner_id else None
+
+    def get_needs_owner_assignment(self, obj):
+        return obj.owner_id is None
 
     def get_avg_rating(self, obj):
         reviews = obj.reviews.all()
@@ -254,7 +269,7 @@ class BookmarkSerializer(serializers.ModelSerializer):
 
 # --- Review Serializer ---
 class ReviewSerializer(serializers.ModelSerializer):
-    user = serializers.ReadOnlyField(source='user.username')
+    user = serializers.SerializerMethodField()
     business_name = serializers.ReadOnlyField(source='business.name')
     user_profile_picture_url = serializers.SerializerMethodField()
 
@@ -268,6 +283,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'business': {'write_only': True, 'required': False}
         }
+
+    def get_user(self, obj):
+        u = obj.user
+        if getattr(u, 'is_deleted', False):
+            name = f'{u.first_name} {u.last_name}'.strip()
+            return name or 'Former user'
+        return u.username
 
     def get_user_profile_picture_url(self, obj):
         if obj.user.profile_picture:

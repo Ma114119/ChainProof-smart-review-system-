@@ -21,9 +21,12 @@ const Notification = ({ message, type, onDismiss }) => (
 // --- Review Card Component (Now includes expandable details) ---
 const ReviewCard = ({ review, isSelected, isExpanded, onToggleSelect, onExpand, onAction }) => {
     const renderStars = (rating) => Array(5).fill(null).map((_, i) => <FaStar key={i} style={{ color: i < rating ? "#ffc107" : "var(--card-border)" }} />);
+    const cardStyle = review.status === 'Approved'
+        ? { ...styles.reviewCard, ...styles.reviewCardApproved, ...(isExpanded && styles.reviewCardExpanded) }
+        : { ...styles.reviewCard, ...(isExpanded && styles.reviewCardExpanded) };
 
     return (
-        <div style={{...styles.reviewCard, ...(isExpanded && styles.reviewCardExpanded)}}>
+        <div style={cardStyle}>
             <div style={styles.cardHeader}>
                 <input type="checkbox" checked={isSelected} onChange={() => onToggleSelect(review.id)} style={{marginRight: '1rem'}} />
                 <h4 style={styles.cardBusinessName}>{review.businessName}</h4>
@@ -65,12 +68,21 @@ const ReviewCard = ({ review, isSelected, isExpanded, onToggleSelect, onExpand, 
                         </button>
                     </div>
 
-                    {/* Actions */}
-                    <h4 style={{...styles.subTitle, marginTop: '1.5rem'}}>Moderation Actions</h4>
-                     <div style={styles.moderationActions}>
-                        <button onClick={() => onAction([review.id], 'Approved')} style={{...styles.actionButton, backgroundColor: '#10B981', color: 'white'}}><FaCheck/> Approve</button>
-                        <button onClick={() => onAction([review.id], 'Rejected')} style={{...styles.actionButton, backgroundColor: '#EF4444', color: 'white'}}><FaTimes/> Reject</button>
-                     </div>
+                    {review.status !== 'Approved' && (
+                        <>
+                            <h4 style={{...styles.subTitle, marginTop: '1.5rem'}}>Moderation Actions</h4>
+                            <div style={styles.moderationActions}>
+                                {review.status === 'Rejected' ? (
+                                    <button onClick={() => onAction([review.id], 'Approved')} style={{...styles.actionButton, backgroundColor: '#10B981', color: 'white'}}><FaCheck/> Approve</button>
+                                ) : (
+                                    <>
+                                        <button onClick={() => onAction([review.id], 'Approved')} style={{...styles.actionButton, backgroundColor: '#10B981', color: 'white'}}><FaCheck/> Approve</button>
+                                        <button onClick={() => onAction([review.id], 'Rejected')} style={{...styles.actionButton, backgroundColor: '#EF4444', color: 'white'}}><FaTimes/> Reject</button>
+                                    </>
+                                )}
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         </div>
@@ -272,6 +284,7 @@ const styles = {
     // --- Review Card ---
     reviewCard: { backgroundColor: 'var(--hero-bg)', borderRadius: '12px', border: '1px solid var(--card-border)', display: 'flex', flexDirection: 'column', transition: 'all 0.3s ease-in-out' },
     reviewCardExpanded: { border: '1px solid var(--button-bg)', boxShadow: '0 0 15px rgba(59, 130, 246, 0.2)' },
+    reviewCardApproved: { border: '1px solid rgba(16, 185, 129, 0.4)', boxShadow: '0 0 0 1px rgba(16, 185, 129, 0.18) inset' },
     cardHeader: { display: 'flex', alignItems: 'center', padding: '1rem', borderBottom: '1px solid var(--card-border)' },
     cardBusinessName: { fontWeight: '600', flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
     cardContent: { padding: '1rem', flex: 1, cursor: 'pointer' },
