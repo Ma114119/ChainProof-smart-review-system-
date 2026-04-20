@@ -16,7 +16,7 @@ import {
 } from 'recharts';
 import { format, parseISO, isValid, startOfDay, endOfDay, eachDayOfInterval } from 'date-fns';
 import { FaShieldAlt, FaSpinner, FaLink, FaCoins, FaClock } from 'react-icons/fa';
-import { fetchAdminReviews, fetchMyBusinesses } from '../../services/api';
+import { fetchAdminReviews, fetchMyBusinesses, fetchAdminUsers } from '../../services/api';
 
 const RANGE_OPTIONS = [
   { value: '7d', label: 'Last 7 Days' },
@@ -55,6 +55,7 @@ function Analytics() {
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
   const [businesses, setBusinesses] = useState([]);
+  const [users, setUsers] = useState([]);
   const [range, setRange] = useState('7d');
   const [customStart, setCustomStart] = useState(format(new Date(Date.now() - 6 * 86400000), 'yyyy-MM-dd'));
   const [customEnd, setCustomEnd] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -63,15 +64,22 @@ function Analytics() {
   const [searchA, setSearchA] = useState('');
   const [searchB, setSearchB] = useState('');
   const [visibleSeries, setVisibleSeries] = useState({ positive: true, neutral: true, negative: true });
+  const [growthFilter, setGrowthFilter] = useState('all');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [reviewsData, businessesData] = await Promise.all([fetchAdminReviews(), fetchMyBusinesses()]);
+      const [reviewsData, businessesData, usersData] = await Promise.all([
+        fetchAdminReviews(),
+        fetchMyBusinesses(),
+        fetchAdminUsers(),
+      ]);
       const list = Array.isArray(businessesData) ? businessesData : [];
       const reviewList = norm(reviewsData);
+      const userList = norm(usersData);
       setReviews(reviewList);
       setBusinesses(list);
+      setUsers(userList);
       if (list.length) {
         setCompareA(String(list[0].id));
         setCompareB(String(list[Math.min(1, list.length - 1)].id));
@@ -118,6 +126,36 @@ function Analytics() {
       return { name: format(day, 'MMM d'), positive, neutral, negative };
     });
   }, [scoped, start, end]);
+
+  const userGrowthSeries = useMemo(() => {
+    const days = eachDayOfInterval({ start, end });
+    const scopedUsers = users.filter((u) => {
+      const role = (u.role || '').toLowerCase();
+      if (growthFilter === 'customer') return role === 'customer';
+      if (growthFilter === 'owner') return role === 'owner';
+      return role === 'customer' || role === 'owner';
+    });
+
+    const usersByDate = scopedUsers.reduce((acc, u) => {
+      const d = parseDate(u.date_joined || u.dateJoined || u.created_at);
+      if (!d) return acc;
+      const key = format(d, 'yyyy-MM-dd');
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+    let cumulativeTotal = 0;
+    return days.map((day) => {
+      const key = format(day, 'yyyy-MM-dd');
+      const dailyNew = usersByDate[key] || 0;
+      cumulativeTotal += dailyNew;
+      return {
+        name: format(day, 'MMM d'),
+        newUsers: dailyNew,
+        totalUsers: cumulativeTotal,
+      };
+    });
+  }, [users, growthFilter, start, end]);
 
   const radarData = useMemo(() => {
     const n = scoped.length || 1;
@@ -266,6 +304,33 @@ function Analytics() {
                 {visibleSeries.positive && <Line type="monotone" dataKey="positive" stroke="#22c55e" strokeWidth={2} dot={false} />}
                 {visibleSeries.neutral && <Line type="monotone" dataKey="neutral" stroke="#9ca3af" strokeWidth={2} dot={false} />}
                 {visibleSeries.negative && <Line type="monotone" dataKey="negative" stroke="#ef4444" strokeWidth={2} dot={false} />}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-chain-border bg-chain-card p-4 shadow-chain">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-lg font-semibold text-chain-header">User Growth</h2>
+            <div className="flex flex-wrap gap-2">
+              <button type="button" onClick={() => setGrowthFilter('all')} className={`rounded-full px-3 py-1 text-xs ${growthFilter === 'all' ? 'bg-chain-accent text-white' : 'border border-chain-border bg-chain-bg text-chain-text'}`}>Total Users</button>
+              <button type="button" onClick={() => setGrowthFilter('customer')} className={`rounded-full px-3 py-1 text-xs ${growthFilter === 'customer' ? 'bg-emerald-600 text-white' : 'border border-chain-border bg-chain-bg text-chain-text'}`}>Customers</button>
+              <button type="button" onClick={() => setGrowthFilter('owner')} className={`rounded-full px-3 py-1 text-xs ${growthFilter === 'owner' ? 'bg-violet-600 text-white' : 'border border-chain-border bg-chain-bg text-chain-text'}`}>Business Owners</button>
+            </div>
+          </div>
+          <p className="mb-3 text-sm text-slate-300">
+            Daily growth and cumulative growth for {growthFilter === 'all' ? 'all users (customers + business owners)' : growthFilter === 'customer' ? 'customers' : 'business owners'}.
+          </p>
+          <div className="h-72 min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={userGrowthSeries}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
+                <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155' }} />
+                <Legend />
+                <Line type="monotone" dataKey="newUsers" name="new users" stroke="#22c55e" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="totalUsers" name="total users" stroke="#60a5fa" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </div>
