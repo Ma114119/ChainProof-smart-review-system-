@@ -129,33 +129,37 @@ function Analytics() {
 
   const userGrowthSeries = useMemo(() => {
     const days = eachDayOfInterval({ start, end });
-    const scopedUsers = users.filter((u) => {
+    const roleUsers = users.filter((u) => {
       const role = (u.role || '').toLowerCase();
-      if (growthFilter === 'customer') return role === 'customer';
-      if (growthFilter === 'owner') return role === 'owner';
       return role === 'customer' || role === 'owner';
     });
 
-    const usersByDate = scopedUsers.reduce((acc, u) => {
+    const usersByDate = roleUsers.reduce((acc, u) => {
       const d = parseDate(u.date_joined || u.dateJoined || u.created_at);
       if (!d) return acc;
       const key = format(d, 'yyyy-MM-dd');
-      acc[key] = (acc[key] || 0) + 1;
+      const role = (u.role || '').toLowerCase();
+      if (!acc[key]) acc[key] = { customer: 0, owner: 0 };
+      if (role === 'customer') acc[key].customer += 1;
+      if (role === 'owner') acc[key].owner += 1;
       return acc;
     }, {});
 
-    let cumulativeTotal = 0;
+    let cumulativeCustomer = 0;
+    let cumulativeOwner = 0;
     return days.map((day) => {
       const key = format(day, 'yyyy-MM-dd');
-      const dailyNew = usersByDate[key] || 0;
-      cumulativeTotal += dailyNew;
+      const daily = usersByDate[key] || { customer: 0, owner: 0 };
+      cumulativeCustomer += daily.customer;
+      cumulativeOwner += daily.owner;
       return {
         name: format(day, 'MMM d'),
-        newUsers: dailyNew,
-        totalUsers: cumulativeTotal,
+        totalUsers: cumulativeCustomer + cumulativeOwner,
+        customerUsers: cumulativeCustomer,
+        ownerUsers: cumulativeOwner,
       };
     });
-  }, [users, growthFilter, start, end]);
+  }, [users, start, end]);
 
   const radarData = useMemo(() => {
     const n = scoped.length || 1;
@@ -319,7 +323,7 @@ function Analytics() {
             </div>
           </div>
           <p className="mb-3 text-sm text-slate-300">
-            Daily growth and cumulative growth for {growthFilter === 'all' ? 'all users (customers + business owners)' : growthFilter === 'customer' ? 'customers' : 'business owners'}.
+            Cumulative growth for total users, customers, and business owners in selected date range.
           </p>
           <div className="h-72 min-w-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -329,7 +333,12 @@ function Analytics() {
                 <YAxis allowDecimals={false} tick={{ fill: '#94a3b8', fontSize: 11 }} />
                 <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155' }} />
                 <Legend />
-                <Line type="monotone" dataKey="newUsers" name="new users" stroke="#22c55e" strokeWidth={2} dot={false} />
+                {(growthFilter === 'all' || growthFilter === 'customer') && (
+                  <Line type="monotone" dataKey="customerUsers" name="customers" stroke="#22c55e" strokeWidth={2} dot={false} />
+                )}
+                {(growthFilter === 'all' || growthFilter === 'owner') && (
+                  <Line type="monotone" dataKey="ownerUsers" name="business owners" stroke="#a855f7" strokeWidth={2} dot={false} />
+                )}
                 <Line type="monotone" dataKey="totalUsers" name="total users" stroke="#60a5fa" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>

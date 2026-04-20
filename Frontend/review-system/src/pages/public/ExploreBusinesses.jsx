@@ -146,7 +146,18 @@ function ExploreBusinesses() {
           <>
             <div style={styles.grid}>
                 {currentBusinesses.map((biz) => (
-                <div key={biz.id} style={styles.card} className="card-hover">
+                <div
+                  key={biz.id}
+                  style={styles.card}
+                  className="card-hover"
+                  onClick={() => navigate(`/business/${biz.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') navigate(`/business/${biz.id}`);
+                  }}
+                  aria-label={`Open ${biz.name} profile`}
+                >
                     {biz.status === 'Active' && <div style={styles.verifiedBadge}><FaCheckCircle/> Active</div>}
                     <img
                       src={biz.profile_picture_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(biz.name)}&background=1E40AF&color=fff&size=400`}
@@ -163,7 +174,10 @@ function ExploreBusinesses() {
                             </div>
                             <button
                                 style={styles.viewBtn}
-                                onClick={() => navigate(`/business/${biz.id}`)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/business/${biz.id}`);
+                                }}
                             >
                                 View Profile
                             </button>
@@ -292,6 +306,7 @@ const styles = {
     boxShadow: "var(--shadow)",
     overflow: 'hidden',
     position: 'relative',
+    cursor: 'pointer',
   },
   verifiedBadge: {
     position: 'absolute',
