@@ -84,7 +84,20 @@ const loginFetch = async (endpoint, options = {}) => {
     headers: { 'Content-Type': 'application/json', ...options.headers },
   });
   if (response.status === 204) return null;
-  const data = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  let data;
+  try {
+    data = await response.json();
+  } catch (e) {
+    if (contentType.includes('text/html')) {
+      const error = new Error('Invalid server response (expected JSON, got HTML). Check API base URL / backend route.');
+      error.data = { detail: 'Server returned HTML instead of JSON.' };
+      throw error;
+    }
+    const error = new Error('Invalid server response. Please ensure backend API is reachable.');
+    error.data = { detail: 'Response is not valid JSON.' };
+    throw error;
+  }
   if (!response.ok) {
     const error = new Error(data?.detail || JSON.stringify(data) || 'API Error');
     error.data = data;

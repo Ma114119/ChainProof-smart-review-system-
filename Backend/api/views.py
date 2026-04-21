@@ -83,6 +83,12 @@ def register_send_otp(request):
     except Exception as e:
         if settings.DEBUG:
             print(f'[DEV] Email failed. OTP for {email}: {otp} (use this to test)')
+            return Response({
+                'pending_id': pending.id,
+                'expires_in_seconds': expiry_minutes * 60,
+                'detail': f'Email service unavailable in development mode. Use OTP shown in backend console.',
+                'dev_otp': otp,
+            })
         pending.delete()
         return Response({'detail': f'Failed to send email: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -131,6 +137,11 @@ def register_resend_otp(request):
     except Exception as e:
         if settings.DEBUG:
             print(f'[DEV] Resend email failed. OTP for {email}: {otp}')
+            return Response({
+                'expires_in_seconds': expiry_minutes * 60,
+                'detail': 'Email service unavailable in development mode. Use OTP shown in backend console.',
+                'dev_otp': otp,
+            })
         return Response({'detail': f'Failed to resend email: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     expires_in_seconds = expiry_minutes * 60

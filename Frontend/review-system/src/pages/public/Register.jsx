@@ -219,7 +219,11 @@ function Register() {
       setPendingId(res.pending_id);
       setCountdown(res.expires_in_seconds || 120);
       setStep('otp');
-      showNotification(`OTP sent to ${form.user.email}. Check your inbox.`, 'success');
+      if (res.dev_otp) {
+        showNotification(`Dev mode: email service unavailable. Use OTP ${res.dev_otp}.`, 'success');
+      } else {
+        showNotification(`OTP sent to ${form.user.email}. Check your inbox.`, 'success');
+      }
     } catch (err) {
       const msg = err.data ? (typeof err.data.detail === 'string' ? err.data.detail : Object.values(err.data).flat().join(' ')) : err.message;
       showNotification(msg || 'Failed to send OTP. Please try again.');
@@ -269,7 +273,11 @@ function Register() {
       const res = await apiRegisterResendOtp(pendingId);
       setCountdown(res.expires_in_seconds || 120);
       setOtpValue('');
-      showNotification('New OTP sent! Check your inbox.', 'success');
+      if (res.dev_otp) {
+        showNotification(`Dev mode: email service unavailable. New OTP: ${res.dev_otp}.`, 'success');
+      } else {
+        showNotification('New OTP sent! Check your inbox.', 'success');
+      }
     } catch (err) {
       const msg = err.data ? (typeof err.data.detail === 'string' ? err.data.detail : Object.values(err.data).flat().join(' ')) : err.message;
       showNotification(msg || 'Failed to resend OTP.');
